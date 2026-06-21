@@ -35,6 +35,7 @@ export const DEFAULT_NODES: IdeaNode[] = [
       tasks: [],
       collapsed: false,
       hiddenTaskCount: 0,
+      hiddenDoneTaskCount: 0,
     },
   },
 ]

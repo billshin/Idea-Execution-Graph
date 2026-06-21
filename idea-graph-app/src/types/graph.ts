@@ -56,6 +56,7 @@ export interface IdeaNodeData {
   tasks: NodeTask[]
   collapsed: boolean
   hiddenTaskCount: number
+  hiddenDoneTaskCount: number
 }
 
 export type IdeaNode = Node<IdeaNodeData>

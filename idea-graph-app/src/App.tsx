@@ -165,15 +165,18 @@ function App() {
       .filter((node) => visibleIds.has(node.id))
       .map((node): IdeaNode => {
         if (!node.data.collapsed) {
-          return { ...node, data: { ...node.data, hiddenTaskCount: 0 } }
+          return { ...node, data: { ...node.data, hiddenTaskCount: 0, hiddenDoneTaskCount: 0 } }
         }
 
         const descendants = getDescendants(node.id, edges)
         let hiddenTaskCount = 0
+        let hiddenDoneTaskCount = 0
 
         for (const descendantId of descendants) {
           const descendant = nodes.find((entry) => entry.id === descendantId)
-          hiddenTaskCount += descendant?.data.tasks.length ?? 0
+          const tasks = descendant?.data.tasks ?? []
+          hiddenTaskCount += tasks.length
+          hiddenDoneTaskCount += tasks.filter((task) => task.done).length
         }
 
         return {
@@ -181,6 +184,7 @@ function App() {
           data: {
             ...node.data,
             hiddenTaskCount,
+            hiddenDoneTaskCount,
           },
         }
       })

@@ -134,7 +134,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display"
-            disabled={editLock}
             style={{ fontWeight: 'bold' }}
             onClick={(event) => {
               event.stopPropagation()
@@ -161,7 +160,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display subtitle-display"
-            disabled={editLock}
             onClick={(event) => {
               event.stopPropagation()
               if (!editLock) {
@@ -187,7 +185,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display conclusion-display"
-            disabled={editLock}
             onClick={(event) => {
               event.stopPropagation()
               if (!editLock) {
@@ -212,7 +209,9 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         </ul>
       ) : null}
 
-      {data.collapsed ? <p className="task-count">Tasks: {data.hiddenTaskCount}</p> : null}
+      {data.collapsed ? (
+        <p className="task-count">Tasks: {(data.hiddenDoneTaskCount ?? 0)}/{data.hiddenTaskCount}</p>
+      ) : null}
 
       {trayOpen ? (
         <div className="node-utility-tray" onClick={(event) => event.stopPropagation()}>

@@ -152,6 +152,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
         tasks: [],
         collapsed: false,
         hiddenTaskCount: 0,
+        hiddenDoneTaskCount: 0,
       },
     }
 
@@ -198,6 +199,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
           files: [],
           collapsed: false,
           hiddenTaskCount: 0,
+          hiddenDoneTaskCount: 0,
           createdAt: nowIso(),
           updatedAt: nowIso(),
         },
