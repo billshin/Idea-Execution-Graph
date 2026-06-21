@@ -46,7 +46,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const editLock = useGraphStore((state) => state.ui.editLock)
   const addConnectedNode = useGraphStore((state) => state.addConnectedNode)
   const toggleNodeCollapsed = useGraphStore((state) => state.toggleNodeCollapsed)
-  const removeNode = useGraphStore((state) => state.removeNode)
   const openNodeEditor = useGraphStore((state) => state.openNodeEditor)
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
   const updateNode = useGraphStore((state) => state.updateNode)

@@ -19,6 +19,13 @@
   min-height: 0;
 }
 
+.left-menu-back-button {
+  width: 100%;
+  border: 1px solid #d7dbe4;
+  background: #ffffff;
+  color: #1e2a4a;
+}
+
 .canvas-wrap {
   border-radius: 14px;
   border: 1px solid #d7dbe4;

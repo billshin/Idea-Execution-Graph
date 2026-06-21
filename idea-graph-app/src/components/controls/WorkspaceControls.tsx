@@ -112,7 +112,7 @@ export function WorkspaceControls() {
               targetDate: typeof parsed.ideaSpace.targetDate === 'string' ? parsed.ideaSpace.targetDate : '',
             }
           : DEFAULT_SNAPSHOT.ideaSpace,
-        ui: parsed.ui as GraphSnapshot['ui'],
+        ui: parsed.ui as unknown as GraphSnapshot['ui'],
       }
 
       loadStoreSnapshot(nextSnapshot)

@@ -90,3 +90,14 @@ export interface AddNodeInput {
   position: XYPosition
   parentId?: string
 }
+
+export interface IdeaProject {
+  id: string
+  title: string
+  subtitle: string
+  createdAt: string
+  updatedAt: string
+  snapshot: GraphSnapshot
+}
+
+export type AppPage = 'list' | 'editor'
