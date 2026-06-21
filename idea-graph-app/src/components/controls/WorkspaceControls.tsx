@@ -20,11 +20,9 @@ export function WorkspaceControls() {
   const edges = useGraphStore((state) => state.edges)
   const parkingLot = useGraphStore((state) => state.parkingLot)
   const loadStoreSnapshot = useGraphStore((state) => state.loadSnapshot)
-  const setFocusMode = useGraphStore((state) => state.setFocusMode)
-  const setFinishMode = useGraphStore((state) => state.setFinishMode)
+  const setMode = useGraphStore((state) => state.setMode)
   const setEditLock = useGraphStore((state) => state.setEditLock)
   const setDisplayField = useGraphStore((state) => state.setDisplayField)
-  const setEdgeTransparency = useGraphStore((state) => state.setEdgeTransparency)
   const toggleAllCollapsed = useGraphStore((state) => state.toggleAllCollapsed)
 
   useEffect(() => {
@@ -77,22 +75,40 @@ export function WorkspaceControls() {
           {actionStatus === 'reset' ? 'Reset' : 'Reset'}
         </button>
       </div>
-      <label className="checkbox-inline-label">
-        <input
-          type="checkbox"
-          checked={ui.focusMode}
-          onChange={(event) => setFocusMode(event.target.checked)}
-        />
-        Focus Mode
-      </label>
-      <label className="checkbox-inline-label">
-        <input
-          type="checkbox"
-          checked={ui.finishMode}
-          onChange={(event) => setFinishMode(event.target.checked)}
-        />
-        Finish Mode
-      </label>
+      <div className="view-mode-group">
+        <p>View Mode</p>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="viewMode"
+            value="default"
+            checked={ui.mode === 'default'}
+            onChange={() => setMode('default')}
+          />
+          All
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="viewMode"
+            value="focus"
+            checked={ui.mode === 'focus'}
+            onChange={() => setMode('focus')}
+          />
+          Focus
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="viewMode"
+            value="finish"
+            checked={ui.mode === 'finish'}
+            onChange={() => setMode('finish')}
+          />
+          Finish
+        </label>
+      </div>
+
       <label className="checkbox-inline-label">
         <input
           type="checkbox"
@@ -100,18 +116,6 @@ export function WorkspaceControls() {
           onChange={(event) => setEditLock(event.target.checked)}
         />
         Edit Lock (inline edit off)
-      </label>
-
-      <label>
-        Edge Opacity
-        <select
-          value={ui.edgeTransparency}
-          onChange={(event) => setEdgeTransparency(event.target.value as 'high' | 'medium' | 'low')}
-        >
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
       </label>
 
       <div className="display-options">

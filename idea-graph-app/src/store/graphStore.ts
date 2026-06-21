@@ -44,14 +44,14 @@ interface GraphState {
   updateNode: (nodeId: string, patch: Partial<IdeaNodeData>) => void
   toggleNodeCollapsed: (nodeId: string) => void
   toggleAllCollapsed: (collapsed: boolean) => void
+  setMode: (mode: WorkspaceUiState['mode']) => void
   setFocusMode: (enabled: boolean) => void
   setFinishMode: (enabled: boolean) => void
   setEditLock: (enabled: boolean) => void
   setDisplayField: (field: keyof WorkspaceUiState['displayFields'], value: boolean) => void
-  setEdgeTransparency: (value: WorkspaceUiState['edgeTransparency']) => void
-  addParkingItem: (title: string, note: string) => void
+  addParkingItem: (content: string) => void
+  updateParkingItem: (itemId: string, content: string) => void
   removeParkingItem: (itemId: string) => void
-  convertParkingItemToTask: (itemId: string, nodeId: string) => void
   openNodeEditor: (nodeId: string) => void
   closeNodeEditor: () => void
   undo: () => void
@@ -305,6 +305,17 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
+  setMode: (mode: WorkspaceUiState['mode']) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        mode,
+        focusMode: mode === 'focus',
+        finishMode: mode === 'finish',
+      },
+    }))
+  },
+
   setFocusMode: (enabled) => {
     set((state) => ({
       ui: {
@@ -346,14 +357,19 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
-  setEdgeTransparency: (value) => {
-    set((state) => ({ ui: { ...state.ui, edgeTransparency: value } }))
-  },
-
-  addParkingItem: (title, note) => {
+  addParkingItem: (content) => {
     set((state) => ({
       undoStack: pushUndoStack(state),
-      parkingLot: [...state.parkingLot, { id: createId('parking'), title, note }],
+      parkingLot: [...state.parkingLot, { id: createId('parking'), content }],
+    }))
+  },
+
+  updateParkingItem: (itemId, content) => {
+    set((state) => ({
+      undoStack: pushUndoStack(state),
+      parkingLot: state.parkingLot.map((item) =>
+        item.id === itemId ? { ...item, content } : item,
+      ),
     }))
   },
 
@@ -362,43 +378,6 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       undoStack: pushUndoStack(state),
       parkingLot: state.parkingLot.filter((item) => item.id !== itemId),
     }))
-  },
-
-  convertParkingItemToTask: (itemId, nodeId) => {
-    set((state) => {
-      const item = state.parkingLot.find((parkingItem) => parkingItem.id === itemId)
-      if (!item) {
-        return state
-      }
-
-      return {
-        undoStack: pushUndoStack(state),
-        parkingLot: state.parkingLot.filter((parkingItem) => parkingItem.id !== itemId),
-        nodes: state.nodes.map((node) => {
-          if (node.id !== nodeId) {
-            return node
-          }
-
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              tasks: [
-                ...node.data.tasks,
-                {
-                  id: createId('task'),
-                  title: item.title,
-                  required: item.note,
-                  conclusion: '',
-                  done: false,
-                },
-              ],
-              updatedAt: nowIso(),
-            },
-          }
-        }),
-      }
-    })
   },
 
   openNodeEditor: (nodeId) => {

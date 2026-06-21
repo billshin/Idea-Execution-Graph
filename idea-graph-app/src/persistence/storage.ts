@@ -10,6 +10,21 @@ interface PersistedPayload {
   ui: GraphSnapshot['ui']
 }
 
+function normalizeParkingLotItem(value: unknown): GraphSnapshot['parkingLot'][number] | null {
+  if (!isObject(value) || typeof value.id !== 'string') {
+    return null
+  }
+
+  if (typeof value.content === 'string') {
+    return { id: value.id, content: value.content }
+  }
+
+  const title = typeof value.title === 'string' ? value.title.trim() : ''
+  const note = typeof value.note === 'string' ? value.note.trim() : ''
+  const content = [title, note].filter(Boolean).join('\n\n')
+  return { id: value.id, content }
+}
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -52,7 +67,9 @@ export function loadSnapshot(): GraphSnapshot {
     return {
       nodes: parsed.graph.nodes,
       edges: parsed.graph.edges,
-      parkingLot: parsed.graph.parkingLot,
+      parkingLot: parsed.graph.parkingLot
+        .map((item) => normalizeParkingLotItem(item))
+        .filter((item): item is GraphSnapshot['parkingLot'][number] => item !== null),
       ui: {
         ...DEFAULT_SNAPSHOT.ui,
         ...parsed.ui,

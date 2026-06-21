@@ -13,7 +13,6 @@ import { IdeaNodeCard } from './components/graph/IdeaNodeCard'
 import { StatusLegend } from './components/graph/StatusLegend'
 import { NodeEditModal } from './components/panels/NodeEditModal'
 import { TaskParkingLot } from './components/tasks/TaskParkingLot'
-import { EDGE_OPACITY_MAP } from './constants/status'
 import { loadSnapshot, saveSnapshot } from './persistence/storage'
 import { useGraphStore } from './store/graphStore'
 import type { IdeaNode } from './types/graph'
@@ -223,8 +222,8 @@ function App() {
     const nodeIds = new Set(renderedNodes.map((node) => node.id))
     return edges
       .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-      .map((edge) => ({ ...edge, style: { ...(edge.style ?? {}), opacity: EDGE_OPACITY_MAP[ui.edgeTransparency] } }))
-  }, [edges, renderedNodes, ui.edgeTransparency])
+      .map((edge) => ({ ...edge }))
+  }, [edges, renderedNodes])
 
   return (
     <main className="app-shell">
@@ -234,8 +233,8 @@ function App() {
           <p>Goal: Build and finish your idea step by step.</p>
         </section>
         <WorkspaceControls />
-        <TaskParkingLot />
         <StatusLegend />
+        <TaskParkingLot />
       </aside>
 
       <section className="canvas-wrap">

@@ -9,8 +9,6 @@ export type IdeaStatus =
   | 'fail'
   | 'cancel'
 
-export type EdgeTransparency = 'high' | 'medium' | 'low'
-
 export type DisplayField =
   | 'label'
   | 'title'
@@ -35,8 +33,7 @@ export interface NodeTask {
 
 export interface ParkingLotItem {
   id: string
-  title: string
-  note: string
+  content: string
 }
 
 export interface IdeaNodeData {
@@ -66,7 +63,6 @@ export interface WorkspaceUiState {
   focusMode: boolean
   finishMode: boolean
   editLock: boolean
-  edgeTransparency: EdgeTransparency
   displayFields: Record<DisplayField, boolean>
   mode: 'default' | 'focus' | 'finish'
   viewport: {

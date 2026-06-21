@@ -81,7 +81,30 @@ label {
   margin: 0;
 }
 
-input,
+.view-mode-group {
+  border-top: 1px dashed #d5dbe8;
+  padding-top: 8px;
+}
+
+.view-mode-group p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #27324d;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #27324d;
+}
+
+.radio-label input[type='radio'] {
+  margin: 0;
+}
+
+input:not([type='checkbox']),
 textarea,
 select {
   border: 1px solid #ced6e4;
@@ -135,6 +158,51 @@ textarea {
   padding: 8px;
   display: grid;
   gap: 8px;
+  position: relative;
+}
+
+.idea-note-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.idea-note-remove-btn:hover {
+  color: #dc2626;
+}
+
+.idea-note-preview {
+  width: 100%;
+  text-align: left;
+  color: #27324d;
+}
+
+.idea-note-preview ul {
+  list-style: auto;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.idea-note-preview li {
+  display: list-item;
+}
+
+.idea-note-preview input[type='checkbox'] {
+  margin: 0 0.5rem 0 0;
+  vertical-align: middle;
+}
+
+.idea-note-preview p {
+  margin: 0;
+}
+
+.idea-note-editor {
+  min-height: 120px;
 }
 
 .markdown-preview {
