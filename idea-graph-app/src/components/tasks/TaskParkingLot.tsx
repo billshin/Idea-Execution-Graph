@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { DEFAULT_IDEA_NOTE_CONTENT } from '../../constants/defaults'
 import { useGraphStore } from '../../store/graphStore'
 
 export function TaskParkingLot() {
@@ -14,9 +15,15 @@ export function TaskParkingLot() {
   // Ensure single note exists
   useEffect(() => {
     if (parkingLot.length === 0) {
-      addParkingItem('')
+      addParkingItem(DEFAULT_IDEA_NOTE_CONTENT)
+      return
     }
-  }, [])
+
+    const firstNote = parkingLot[0]
+    if (firstNote && firstNote.content.trim().length === 0) {
+      updateParkingItem(firstNote.id, DEFAULT_IDEA_NOTE_CONTENT)
+    }
+  }, [addParkingItem, parkingLot, updateParkingItem])
 
   useEffect(() => {
     if (!editingNoteId) {
@@ -73,7 +80,7 @@ export function TaskParkingLot() {
               }}
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {note.content || '_Click to edit_'}
+                {note.content.trim() || DEFAULT_IDEA_NOTE_CONTENT}
               </ReactMarkdown>
             </div>
           )}

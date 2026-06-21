@@ -36,6 +36,12 @@ export interface ParkingLotItem {
   content: string
 }
 
+export interface IdeaSpaceData {
+  title: string
+  subtitle: string
+  targetDate: string
+}
+
 export interface IdeaNodeData {
   title: string
   subtitle: string
@@ -76,6 +82,7 @@ export interface GraphSnapshot {
   nodes: IdeaNode[]
   edges: IdeaEdge[]
   parkingLot: ParkingLotItem[]
+  ideaSpace: IdeaSpaceData
   ui: WorkspaceUiState
 }
 

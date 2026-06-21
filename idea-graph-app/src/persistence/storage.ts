@@ -46,6 +46,7 @@ function validatePayload(value: unknown): value is PersistedPayload {
     return false
   }
 
+  // ideaSpace is optional for backward compatibility
   return true
 }
 
@@ -64,12 +65,21 @@ export function loadSnapshot(): GraphSnapshot {
       return DEFAULT_SNAPSHOT
     }
 
+    const ideaSpace = isObject(parsed.graph.ideaSpace)
+      ? {
+          title: typeof parsed.graph.ideaSpace.title === 'string' ? parsed.graph.ideaSpace.title : '',
+          subtitle: typeof parsed.graph.ideaSpace.subtitle === 'string' ? parsed.graph.ideaSpace.subtitle : '',
+          targetDate: typeof parsed.graph.ideaSpace.targetDate === 'string' ? parsed.graph.ideaSpace.targetDate : '',
+        }
+      : DEFAULT_SNAPSHOT.ideaSpace
+
     return {
       nodes: parsed.graph.nodes,
       edges: parsed.graph.edges,
       parkingLot: parsed.graph.parkingLot
         .map((item) => normalizeParkingLotItem(item))
         .filter((item): item is GraphSnapshot['parkingLot'][number] => item !== null),
+      ideaSpace,
       ui: {
         ...DEFAULT_SNAPSHOT.ui,
         ...parsed.ui,
@@ -102,6 +112,7 @@ export function saveSnapshot(snapshot: GraphSnapshot): void {
       })),
       edges: snapshot.edges,
       parkingLot: snapshot.parkingLot,
+      ideaSpace: snapshot.ideaSpace,
       ui: snapshot.ui,
     },
     ui: snapshot.ui,

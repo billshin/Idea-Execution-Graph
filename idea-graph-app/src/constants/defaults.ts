@@ -41,9 +41,21 @@ export const DEFAULT_NODES: IdeaNode[] = [
 
 export const DEFAULT_EDGES: IdeaEdge[] = []
 
+export const DEFAULT_IDEA_NOTE_CONTENT = '在這裡記錄你的想法、假設與下一步。'
+
 export const DEFAULT_SNAPSHOT: GraphSnapshot = {
   nodes: DEFAULT_NODES,
   edges: DEFAULT_EDGES,
-  parkingLot: [],
+  parkingLot: [
+    {
+      id: 'parking-default-note',
+      content: DEFAULT_IDEA_NOTE_CONTENT,
+    },
+  ],
+  ideaSpace: {
+    title: '',
+    subtitle: '',
+    targetDate: '',
+  },
   ui: DEFAULT_UI_STATE,
 }

@@ -8,6 +8,7 @@ import type {
   IdeaEdge,
   IdeaNode,
   IdeaNodeData,
+  IdeaSpaceData,
   ParkingLotItem,
   WorkspaceUiState,
 } from '../types/graph'
@@ -25,6 +26,7 @@ interface GraphState {
   nodes: IdeaNode[]
   edges: IdeaEdge[]
   parkingLot: ParkingLotItem[]
+  ideaSpace: IdeaSpaceData
   ui: WorkspaceUiState
   selectedNodeId?: string
   selectedEdgeId?: string
@@ -52,6 +54,7 @@ interface GraphState {
   addParkingItem: (content: string) => void
   updateParkingItem: (itemId: string, content: string) => void
   removeParkingItem: (itemId: string) => void
+  updateIdeaSpace: (patch: Partial<IdeaSpaceData>) => void
   openNodeEditor: (nodeId: string) => void
   closeNodeEditor: () => void
   undo: () => void
@@ -92,6 +95,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   nodes: DEFAULT_NODES,
   edges: DEFAULT_EDGES,
   parkingLot: [],
+  ideaSpace: {
+    title: '',
+    subtitle: '',
+    targetDate: '',
+  },
   ui: DEFAULT_UI_STATE,
   selectedNodeId: DEFAULT_NODES[0]?.id,
   selectedEdgeId: undefined,
@@ -380,6 +388,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
+  updateIdeaSpace: (patch) => {
+    set((state) => ({
+      ideaSpace: {
+        ...state.ideaSpace,
+        ...patch,
+      },
+    }))
+  },
+
   openNodeEditor: (nodeId) => {
     set({ editingNodeId: nodeId, selectedNodeId: nodeId, selectedEdgeId: undefined })
   },
@@ -413,6 +430,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       nodes: snapshot.nodes,
       edges: snapshot.edges,
       parkingLot: snapshot.parkingLot,
+      ideaSpace: snapshot.ideaSpace,
       ui: snapshot.ui,
       selectedNodeId: snapshot.nodes[0]?.id,
       selectedEdgeId: undefined,

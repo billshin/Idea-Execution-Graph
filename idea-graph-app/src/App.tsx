@@ -8,6 +8,8 @@ import ReactFlow, {
   type ReactFlowInstance,
 } from 'reactflow'
 import './App.css'
+import logoImage from './assets/Logo.png'
+import { IdeaSpace } from './components/controls/IdeaSpace'
 import { WorkspaceControls } from './components/controls/WorkspaceControls'
 import { IdeaNodeCard } from './components/graph/IdeaNodeCard'
 import { StatusLegend } from './components/graph/StatusLegend'
@@ -106,10 +108,12 @@ function getFinishPathIds(nodes: IdeaNode[], edges: Edge[]): Set<string> {
 
 function App() {
   const [hasHydrated, setHasHydrated] = useState(false)
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false)
   const flowInstanceRef = useRef<ReactFlowInstance | null>(null)
   const nodes = useGraphStore((state) => state.nodes)
   const edges = useGraphStore((state) => state.edges)
   const parkingLot = useGraphStore((state) => state.parkingLot)
+  const ideaSpace = useGraphStore((state) => state.ideaSpace)
   const ui = useGraphStore((state) => state.ui)
   const onNodesChange = useGraphStore((state) => state.onNodesChange)
   const onEdgesChange = useGraphStore((state) => state.onEdgesChange)
@@ -133,8 +137,8 @@ function App() {
       return
     }
 
-    saveSnapshot({ nodes, edges, parkingLot, ui })
-  }, [edges, hasHydrated, nodes, parkingLot, ui])
+    saveSnapshot({ nodes, edges, parkingLot, ideaSpace, ui })
+  }, [edges, hasHydrated, nodes, parkingLot, ideaSpace, ui])
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -226,18 +230,34 @@ function App() {
   }, [edges, renderedNodes])
 
   return (
-    <main className="app-shell">
-      <aside className="left-panel">
-        <section className="panel goal-panel">
-          <h2>Idea Execution Graph</h2>
-          <p>Goal: Build and finish your idea step by step.</p>
-        </section>
-        <WorkspaceControls />
-        <StatusLegend />
-        <TaskParkingLot />
-      </aside>
+    <main className={`app-shell${isLeftPanelCollapsed ? ' app-shell--left-collapsed' : ''}`}>
+      {!isLeftPanelCollapsed && (
+        <aside className="left-panel">
+          {/* <section className="panel goal-panel">
+            <img className="goal-logo" src={logoImage} alt="Idea Execution Graph" />
+            <p>Goal: Build and finish your idea step by step.</p>
+          </section> */}
+           <img className="goal-logo" src={logoImage} alt="Idea Execution Graph" />
+          <IdeaSpace />
+          <WorkspaceControls />
+          <StatusLegend />
+          <TaskParkingLot />
+        </aside>
+      )}
 
       <section className="canvas-wrap">
+        <button
+          type="button"
+          className="left-panel-toggle"
+          onClick={() => setIsLeftPanelCollapsed((value) => !value)}
+          aria-label={isLeftPanelCollapsed ? 'Expand left panel' : 'Collapse left panel'}
+        >
+          {isLeftPanelCollapsed ? '📘 展開側欄' : '📖 收合側欄'}
+        </button>
+        <div className="collapsed-idea-space">
+          <p className="collapsed-idea-space-title">{ideaSpace.title || '新想法'}</p>
+          <p className="collapsed-idea-space-subtitle">{ideaSpace.subtitle || '為了什麼目的'}</p>
+        </div>
         <ReactFlow
           nodes={renderedNodes}
           edges={renderedEdges}
