@@ -1,0 +1,305 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 14px;
+  min-height: 100vh;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.canvas-wrap {
+  border-radius: 14px;
+  border: 1px solid #d7dbe4;
+  background: #f6f8fc;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel {
+  border: 1px solid #d7dbe4;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel h2,
+.panel h3,
+.panel p {
+  margin: 0;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #c7cedd;
+  background: #eef3ff;
+  color: #1e2a4a;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+label {
+  display: grid;
+  gap: 4px;
+  color: #27324d;
+}
+
+input,
+textarea,
+select {
+  border: 1px solid #ced6e4;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #ffffff;
+}
+
+textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.display-options {
+  border-top: 1px dashed #d5dbe8;
+  padding-top: 8px;
+}
+
+.display-options label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.legend-panel ul,
+.parking-panel ul,
+.task-editor ul,
+.label-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legend-panel li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid #c8d0e0;
+}
+
+.parking-panel li {
+  border: 1px solid #d5dbe8;
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.markdown-preview {
+  border: 1px dashed #cfd7e5;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fafcff;
+}
+
+.idea-node {
+  width: 220px;
+  border: 3px solid #94a3b8;
+  border-radius: 10px;
+  padding: 8px;
+  background: #ffffff;
+  display: grid;
+  gap: 6px;
+  color: #111827;
+  position: relative;
+}
+
+.idea-node.is-selected {
+  box-shadow: 0 0 0 2px #0f172a;
+}
+
+.idea-node header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.idea-node h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.status-pill {
+  border-radius: 999px;
+  border: 1px solid #c4ccdc;
+  padding: 1px 7px;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+.idea-node p,
+.idea-node small,
+.idea-node em {
+  margin: 0;
+  font-size: 12px;
+}
+
+.label-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.label-list li {
+  border-radius: 999px;
+  border: 1px solid #cfd7e5;
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+.task-count {
+  font-weight: 600;
+}
+
+.node-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.top-right {
+  margin-left: auto;
+}
+
+.node-status-select {
+  max-width: 92px;
+}
+
+.inline-title,
+.inline-field {
+  width: 100%;
+  font-size: 12px;
+}
+
+.inline-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inline-display {
+  width: 100%;
+  text-align: left;
+  border: 1px dashed #d7dbe4;
+  background: #ffffff;
+  color: #111827;
+  padding: 4px 6px;
+}
+
+.add-node-inline {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.node-utility-tray {
+  border-top: 1px dashed #d7dbe4;
+  padding-top: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.utility-btn {
+  font-size: 11px;
+  padding: 3px 7px;
+}
+
+.gear-btn {
+  border: none;
+  background: transparent;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.task-mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.task-mini-list li {
+  border-left: 2px solid #b9c5df;
+  padding-left: 6px;
+  font-size: 11px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.modal-panel {
+  width: min(720px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 1180px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-wrap {
+    min-height: 60vh;
+  }
+}

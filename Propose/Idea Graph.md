@@ -1,4 +1,4 @@
-# Idea Graph
+# Idea Execution Graph
 
 ## 核心目標
 
@@ -37,8 +37,8 @@ Storage
 - [按鈕] 全收合 > Hide non Custom Display 項目
 - [按鈕] 注目模式 (只針對卡片端點 is_focus_path 的路線顯示)
 - [按鈕] 達成模式 (只對狀態卡片端點 Finish 的路線顯示 )
-- [List] 端點路線顯示&透明化 , 依據路線結尾可以選擇那些要顯示& 手條透明度(High midden low)
-- Custom Display: 自訂node內顯示資訊 [chekbox] list
+- [List] 端點路線顯示&透明化 , 依據路線結尾可以選擇那些要顯示& 手條透明度(High medium low)
+- Custom Display: 自訂node內顯示資訊 [checkbox] list
 
 ## 節點說明
 
@@ -107,7 +107,7 @@ New Idea ,Title 預設文字寫 START
 
   "ui": {
     "positions": {},
-    "display":["tag", "title" ,"subtitle" ],
+    "display":["label", "title" ,"subtitle" ],
     "viewport": {
       "zoom": 1,
       "x": 0,
@@ -124,9 +124,9 @@ New Idea ,Title 預設文字寫 START
 
 | 顏色 | 狀態 |
 | :--- | :--- |
-| White | New |
+| White | Open |
 | Blue | Doing |
-| Yellow | Open |
+| Yellow | wait |
 | Purple | Hold |
 | Green | Finish |
 | Red | FAIL |

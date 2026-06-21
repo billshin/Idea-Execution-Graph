@@ -1,0 +1,21 @@
+:root {
+  font-family: 'Segoe UI', 'Noto Sans TC', sans-serif;
+  color: #111827;
+  background: linear-gradient(180deg, #dbe8ff 0%, #eff4ff 30%, #f6f8fc 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
