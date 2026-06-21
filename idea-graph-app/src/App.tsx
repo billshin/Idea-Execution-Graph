@@ -48,6 +48,35 @@ function getDescendants(startId: string, edges: Edge[]): Set<string> {
   return descendants
 }
 
+function getAncestorIds(seedIds: string[], edges: Edge[]): Set<string> {
+  const parentByChild = new Map<string, string[]>()
+  for (const edge of edges) {
+    const parents = parentByChild.get(edge.target) ?? []
+    parents.push(edge.source)
+    parentByChild.set(edge.target, parents)
+  }
+
+  const included = new Set<string>(seedIds)
+  const queue = [...seedIds]
+
+  while (queue.length > 0) {
+    const current = queue.shift()!
+    for (const parent of parentByChild.get(current) ?? []) {
+      if (!included.has(parent)) {
+        included.add(parent)
+        queue.push(parent)
+      }
+    }
+  }
+
+  return included
+}
+
+function getFocusPathIds(nodes: IdeaNode[], edges: Edge[]): Set<string> {
+  const seedIds = nodes.filter((node) => node.data.isFocusPath).map((node) => node.id)
+  return getAncestorIds(seedIds, edges)
+}
+
 function getFinishPathIds(nodes: IdeaNode[], edges: Edge[]): Set<string> {
   const finishNodeIds = nodes.filter((node) => node.data.status === 'finish').map((node) => node.id)
   const parentByChild = new Map<string, string[]>()
@@ -132,9 +161,9 @@ function App() {
     const visibleIds = new Set<string>(nodes.map((node) => node.id))
 
     if (ui.focusMode) {
-      const focusIds = new Set(nodes.filter((node) => node.data.isFocusPath).map((node) => node.id))
+      const focusPathIds = getFocusPathIds(nodes, edges)
       for (const id of visibleIds) {
-        if (!focusIds.has(id)) {
+        if (!focusPathIds.has(id)) {
           visibleIds.delete(id)
         }
       }
