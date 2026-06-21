@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import ReactFlow, {
   Background,
@@ -77,7 +77,7 @@ function getFinishPathIds(nodes: IdeaNode[], edges: Edge[]): Set<string> {
 }
 
 function App() {
-  const hasHydrated = useRef(false)
+  const [hasHydrated, setHasHydrated] = useState(false)
   const flowInstanceRef = useRef<ReactFlowInstance | null>(null)
   const nodes = useGraphStore((state) => state.nodes)
   const edges = useGraphStore((state) => state.edges)
@@ -97,16 +97,16 @@ function App() {
   useEffect(() => {
     const snapshot = loadSnapshot()
     loadStoreSnapshot(snapshot)
-    hasHydrated.current = true
+    setHasHydrated(true)
   }, [loadStoreSnapshot])
 
   useEffect(() => {
-    if (!hasHydrated.current) {
+    if (!hasHydrated) {
       return
     }
 
     saveSnapshot({ nodes, edges, parkingLot, ui })
-  }, [edges, nodes, parkingLot, ui])
+  }, [edges, hasHydrated, nodes, parkingLot, ui])
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {

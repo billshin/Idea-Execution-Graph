@@ -29,6 +29,7 @@ export interface NodeTask {
   id: string
   title: string
   required: string
+  conclusion: string
   done: boolean
 }
 

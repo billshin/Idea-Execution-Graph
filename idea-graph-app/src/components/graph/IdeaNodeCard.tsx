@@ -90,6 +90,17 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         <div className="node-actions top-right">
           <button
             type="button"
+            className="collapse-btn"
+            title={data.collapsed ? 'Expand' : 'Collapse'}
+            onClick={(event) => {
+              event.stopPropagation()
+              toggleNodeCollapsed(id)
+            }}
+          >
+            {data.collapsed ? '📘' : '📖'}
+          </button>
+          <button
+            type="button"
             className="gear-btn"
             onClick={(event) => {
               event.stopPropagation()
@@ -106,7 +117,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
               addConnectedNode(id)
             }}
           >
-            +
+            ➕
           </button>
         </div>
       </header>
@@ -137,7 +148,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         )
       ) : null}
 
-      {displayFields.subtitle ? (
+      {displayFields.subtitle && data.subtitle.trim() ? (
         editingField === 'subtitle' && !editLock ? (
           <InlineInput
             className="inline-field"
@@ -149,7 +160,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         ) : (
           <button
             type="button"
-            className="inline-display"
+            className="inline-display subtitle-display"
             disabled={editLock}
             onClick={(event) => {
               event.stopPropagation()
@@ -158,12 +169,12 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
               }
             }}
           >
-            {data.subtitle || 'Subtitle'}
+            {data.subtitle}
           </button>
         )
       ) : null}
-      {displayFields.targetDate && data.targetDate ? <small>Target: {data.targetDate}</small> : null}
-      {displayFields.conclusion ? (
+
+      {displayFields.conclusion && data.conclusion.trim() ? (
         editingField === 'conclusion' && !editLock ? (
           <InlineInput
             className="inline-field"
@@ -175,7 +186,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         ) : (
           <button
             type="button"
-            className="inline-display"
+            className="inline-display conclusion-display"
             disabled={editLock}
             onClick={(event) => {
               event.stopPropagation()
@@ -184,14 +195,19 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
               }
             }}
           >
-            {data.conclusion || 'Conclusion'}
+            {data.conclusion}
           </button>
         )
       ) : null}
-      {displayFields.taskList ? (
+
+      {displayFields.targetDate && data.targetDate ? <small>Target: {data.targetDate}</small> : null}
+      {displayFields.taskList && data.tasks.length > 0 ? (
         <ul className="task-mini-list">
           {data.tasks.slice(0, 3).map((task) => (
-            <li key={task.id}>{task.title}</li>
+            <li key={task.id} className={task.done ? 'task-completed' : ''}>
+                <span className="task-title">{task.title}</span>
+                {task.conclusion && <span className="task-conclusion">{task.conclusion}</span>}
+            </li>
           ))}
         </ul>
       ) : null}
@@ -214,33 +230,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             <option value="fail">Fail</option>
             <option value="cancel">Cancel</option>
           </select>
-          <button
-            type="button"
-            className="utility-btn"
-            onClick={() => toggleNodeCollapsed(id)}
-          >
-            {data.collapsed ? 'Expand' : 'Collapse'}
-          </button>
-          <button
-            type="button"
-            className="utility-btn"
-            onClick={(event) => {
-              event.stopPropagation()
-              openNodeEditor(id)
-            }}
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            className="utility-btn"
-            onClick={(event) => {
-              event.stopPropagation()
-              removeNode(id)
-            }}
-          >
-            Delete
-          </button>
         </div>
       ) : null}
       <Handle type="source" position={Position.Right} />

@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import { DEFAULT_SNAPSHOT } from '../../constants/defaults'
+import { loadSnapshot, saveSnapshot } from '../../persistence/storage'
 import { useGraphStore } from '../../store/graphStore'
 import type { DisplayField } from '../../types/graph'
 
@@ -11,13 +14,48 @@ const DISPLAY_OPTIONS: Array<{ key: DisplayField; label: string }> = [
 ]
 
 export function WorkspaceControls() {
+  const [actionStatus, setActionStatus] = useState<'idle' | 'saved' | 'loaded' | 'reset'>('idle')
   const ui = useGraphStore((state) => state.ui)
+  const nodes = useGraphStore((state) => state.nodes)
+  const edges = useGraphStore((state) => state.edges)
+  const parkingLot = useGraphStore((state) => state.parkingLot)
+  const loadStoreSnapshot = useGraphStore((state) => state.loadSnapshot)
   const setFocusMode = useGraphStore((state) => state.setFocusMode)
   const setFinishMode = useGraphStore((state) => state.setFinishMode)
   const setEditLock = useGraphStore((state) => state.setEditLock)
   const setDisplayField = useGraphStore((state) => state.setDisplayField)
   const setEdgeTransparency = useGraphStore((state) => state.setEdgeTransparency)
   const toggleAllCollapsed = useGraphStore((state) => state.toggleAllCollapsed)
+
+  useEffect(() => {
+    if (actionStatus === 'idle') {
+      return
+    }
+
+    const timer = window.setTimeout(() => setActionStatus('idle'), 1500)
+    return () => window.clearTimeout(timer)
+  }, [actionStatus])
+
+  const handleSave = () => {
+    saveSnapshot({ nodes, edges, parkingLot, ui })
+    setActionStatus('saved')
+  }
+
+  const handleLoad = () => {
+    loadStoreSnapshot(loadSnapshot())
+    setActionStatus('loaded')
+  }
+
+  const handleReset = () => {
+    const confirmed = window.confirm('Reset workspace to default state? This will overwrite the current local storage snapshot.')
+    if (!confirmed) {
+      return
+    }
+
+    loadStoreSnapshot(DEFAULT_SNAPSHOT)
+    saveSnapshot(DEFAULT_SNAPSHOT)
+    setActionStatus('reset')
+  }
 
   return (
     <section className="panel controls-panel">
@@ -29,8 +67,17 @@ export function WorkspaceControls() {
         <button type="button" onClick={() => toggleAllCollapsed(false)}>
           Expand All
         </button>
+        <button type="button" onClick={handleSave}>
+          {actionStatus === 'saved' ? 'Saved' : 'Save'}
+        </button>
+        <button type="button" onClick={handleLoad}>
+          {actionStatus === 'loaded' ? 'Loaded' : 'Load'}
+        </button>
+        <button type="button" onClick={handleReset}>
+          {actionStatus === 'reset' ? 'Reset' : 'Reset'}
+        </button>
       </div>
-      <label>
+      <label className="checkbox-inline-label">
         <input
           type="checkbox"
           checked={ui.focusMode}
@@ -38,7 +85,7 @@ export function WorkspaceControls() {
         />
         Focus Mode
       </label>
-      <label>
+      <label className="checkbox-inline-label">
         <input
           type="checkbox"
           checked={ui.finishMode}
@@ -46,7 +93,7 @@ export function WorkspaceControls() {
         />
         Finish Mode
       </label>
-      <label>
+      <label className="checkbox-inline-label">
         <input
           type="checkbox"
           checked={ui.editLock}
@@ -70,7 +117,7 @@ export function WorkspaceControls() {
       <div className="display-options">
         <p>Custom Display</p>
         {DISPLAY_OPTIONS.map((option) => (
-          <label key={option.key}>
+          <label key={option.key} className="checkbox-inline-label">
             <input
               type="checkbox"
               checked={ui.displayFields[option.key]}

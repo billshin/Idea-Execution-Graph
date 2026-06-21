@@ -1,0 +1,1 @@
+New-Item "$(Get-Date -Format 'yyyyMMdd_HHmm').md"

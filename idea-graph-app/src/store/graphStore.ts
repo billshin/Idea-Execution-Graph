@@ -177,17 +177,22 @@ export const useGraphStore = create<GraphState>((set, get) => ({
         return state
       }
 
+      const linkedChildCount = state.edges.filter((edge) => edge.source === sourceId).length
+
       const id = createId('node')
       const nextNode: IdeaNode = {
         id,
         type: 'ideaNode',
-        position: { x: source.position.x + 260, y: source.position.y + 40 },
+        position: {
+          x: source.position.x + 260 + linkedChildCount * 10,
+          y: source.position.y + 40 + linkedChildCount * 10,
+        },
         data: {
           ...source.data,
-          title: 'START',
-          subtitle: 'New Branch',
+          title: '解決方式',
+          subtitle: '使用什麼方法來解決這個問題?',
           status: 'open',
-          labels: [],
+          labels: ['thinking'],
           isFocusPath: false,
           tasks: [],
           files: [],
@@ -382,6 +387,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
                   id: createId('task'),
                   title: item.title,
                   required: item.note,
+                  conclusion: '',
                   done: false,
                 },
               ],
