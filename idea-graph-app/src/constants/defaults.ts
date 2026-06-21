@@ -3,6 +3,10 @@ import { DEFAULT_DISPLAY_FIELDS } from './status'
 
 const nowIso = new Date().toISOString()
 
+function createId(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`
+}
+
 export const DEFAULT_UI_STATE: WorkspaceUiState = {
   focusMode: false,
   finishMode: false,
@@ -14,7 +18,7 @@ export const DEFAULT_UI_STATE: WorkspaceUiState = {
 
 export const DEFAULT_NODES: IdeaNode[] = [
   {
-    id: 'node-start',
+    id: createId('node'),
     type: 'ideaNode',
     position: { x: 120, y: 120 },
     data: {
