@@ -1,8 +1,45 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { STATUS_COLOR_MAP } from '../../constants/status'
 import type { IdeaNodeData } from '../../types/graph'
 import { useGraphStore } from '../../store/graphStore'
+
+function InlineInput({
+  className,
+  value,
+  onCommit,
+  placeholder,
+  autoFocus,
+}: {
+  className: string
+  value: string
+  onCommit: (value: string) => void
+  placeholder?: string
+  autoFocus?: boolean
+}) {
+  const [localValue, setLocalValue] = useState(value)
+  const composingRef = useRef(false)
+
+  return (
+    <input
+      className={className}
+      value={localValue}
+      autoFocus={autoFocus}
+      placeholder={placeholder}
+      onClick={(event) => event.stopPropagation()}
+      onChange={(event) => setLocalValue(event.target.value)}
+      onCompositionStart={() => { composingRef.current = true }}
+      onCompositionEnd={() => { composingRef.current = false }}
+      onBlur={() => onCommit(localValue)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' && !composingRef.current) {
+          event.preventDefault()
+          onCommit(localValue)
+        }
+      }}
+    />
+  )
+}
 
 export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const displayFields = useGraphStore((state) => state.ui.displayFields)
@@ -42,28 +79,14 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       }}
     >
       <Handle type="target" position={Position.Left} />
-      {displayFields.label && data.labels.length > 0 ? (
-        <ul className="label-list top-labels">
-          {data.labels.map((label) => (
-            <li key={label}>{label}</li>
-          ))}
-        </ul>
-      ) : null}
       <header>
-        <select
-          className="node-status-select"
-          value={data.status}
-          onClick={(event) => event.stopPropagation()}
-          onChange={(event) => updateNode(id, { status: event.target.value as IdeaNodeData['status'] })}
-        >
-          <option value="open">Open</option>
-          <option value="doing">Doing</option>
-          <option value="wait">Wait</option>
-          <option value="hold">Hold</option>
-          <option value="finish">Finish</option>
-          <option value="fail">Fail</option>
-          <option value="cancel">Cancel</option>
-        </select>
+        {displayFields.label && data.labels.length > 0 ? (
+          <ul className="label-list top-labels">
+            {data.labels.map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
+        ) : null}
         <div className="node-actions top-right">
           <button
             type="button"
@@ -90,25 +113,18 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
 
       {displayFields.title ? (
         editingField === 'title' && !editLock ? (
-          <input
+          <InlineInput
             className="inline-title"
             value={data.title}
             autoFocus
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => updateNode(id, { title: event.target.value })}
-            onBlur={(event) => commitField('title', event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                commitField('title', (event.target as HTMLInputElement).value)
-              }
-            }}
+            onCommit={(value) => commitField('title', value)}
           />
         ) : (
           <button
             type="button"
             className="inline-display"
             disabled={editLock}
+            style={{ fontWeight: 'bold' }}
             onClick={(event) => {
               event.stopPropagation()
               if (!editLock) {
@@ -123,20 +139,12 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
 
       {displayFields.subtitle ? (
         editingField === 'subtitle' && !editLock ? (
-          <input
+          <InlineInput
             className="inline-field"
             value={data.subtitle}
             autoFocus
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => updateNode(id, { subtitle: event.target.value })}
-            onBlur={(event) => commitField('subtitle', event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                commitField('subtitle', (event.target as HTMLInputElement).value)
-              }
-            }}
             placeholder="Subtitle"
+            onCommit={(value) => commitField('subtitle', value)}
           />
         ) : (
           <button
@@ -157,20 +165,12 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       {displayFields.targetDate && data.targetDate ? <small>Target: {data.targetDate}</small> : null}
       {displayFields.conclusion ? (
         editingField === 'conclusion' && !editLock ? (
-          <input
+          <InlineInput
             className="inline-field"
             value={data.conclusion}
             autoFocus
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => updateNode(id, { conclusion: event.target.value })}
-            onBlur={(event) => commitField('conclusion', event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                commitField('conclusion', (event.target as HTMLInputElement).value)
-              }
-            }}
             placeholder="Conclusion"
+            onCommit={(value) => commitField('conclusion', value)}
           />
         ) : (
           <button
@@ -200,6 +200,20 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
 
       {trayOpen ? (
         <div className="node-utility-tray" onClick={(event) => event.stopPropagation()}>
+          <select
+            className="node-status-select"
+            value={data.status}
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => updateNode(id, { status: event.target.value as IdeaNodeData['status'] })}
+          >
+            <option value="open">Open</option>
+            <option value="doing">Doing</option>
+            <option value="wait">Wait</option>
+            <option value="hold">Hold</option>
+            <option value="finish">Finish</option>
+            <option value="fail">Fail</option>
+            <option value="cancel">Cancel</option>
+          </select>
           <button
             type="button"
             className="utility-btn"

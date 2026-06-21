@@ -221,8 +221,8 @@ textarea {
 .inline-display {
   width: 100%;
   text-align: left;
-  border: 1px dashed #d7dbe4;
-  background: #ffffff;
+  border: none;
+  background: transparent;
   color: #111827;
   padding: 4px 6px;
 }
