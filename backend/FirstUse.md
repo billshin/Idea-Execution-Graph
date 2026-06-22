@@ -6,9 +6,8 @@ cd U:\Projects\Idea-Execution-Graph\backend
 安裝套件（第一次才需要）
 npm install
 
-初始化 Prisma（第一次才需要）
-npx prisma generate
-npx prisma migrate dev --name init
+JSON 資料檔（不需手動建立）
+第一次寫入資料時會自動建立 backend/data/projects.json
 
 啟動開發伺服器
 npm run dev
@@ -21,4 +20,6 @@ http://localhost:4000/Idea-Execution-Graph/api/health
 
 npm run build
 npm run start
-補充：你之前有遇到 Prisma engines 下載卡住，如果第 3 步失敗，先確認網路或代理可連 binaries.prisma.sh，再重跑一次。
+
+API 路徑：
+http://localhost:4000/Idea-Execution-Graph/api

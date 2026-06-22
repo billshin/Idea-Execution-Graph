@@ -15,6 +15,13 @@ function handleValidationError(res: Response, error: ZodError) {
   });
 }
 
+function getRouteId(idParam: string | string[] | undefined): string {
+  if (!idParam) {
+    throw new Error('Missing project id');
+  }
+  return Array.isArray(idParam) ? idParam[0] : idParam;
+}
+
 export async function listProjects(_req: Request, res: Response, next: NextFunction) {
   try {
     const projects = await projectsService.list();
@@ -26,7 +33,7 @@ export async function listProjects(_req: Request, res: Response, next: NextFunct
 
 export async function getProject(req: Request, res: Response, next: NextFunction) {
   try {
-    const project = await projectsService.getById(req.params.id);
+    const project = await projectsService.getById(getRouteId(req.params.id));
     res.json(project);
   } catch (err) {
     next(err);
@@ -48,7 +55,7 @@ export async function updateProject(req: Request, res: Response, next: NextFunct
   try {
     const parsed = updateProjectSchema.safeParse(req.body);
     if (!parsed.success) return handleValidationError(res, parsed.error);
-    const project = await projectsService.update(req.params.id, parsed.data);
+    const project = await projectsService.update(getRouteId(req.params.id), parsed.data);
     res.json(project);
   } catch (err) {
     next(err);
@@ -57,7 +64,7 @@ export async function updateProject(req: Request, res: Response, next: NextFunct
 
 export async function deleteProject(req: Request, res: Response, next: NextFunction) {
   try {
-    await projectsService.delete(req.params.id);
+    await projectsService.delete(getRouteId(req.params.id));
     res.status(204).end();
   } catch (err) {
     next(err);
