@@ -38,6 +38,7 @@ export function WorkspaceControls() {
   const loadStoreSnapshot = useGraphStore((state) => state.loadSnapshot)
   const setMode = useGraphStore((state) => state.setMode)
   const setEditLock = useGraphStore((state) => state.setEditLock)
+  const setAddNodeDirection = useGraphStore((state) => state.setAddNodeDirection)
   const setDisplayField = useGraphStore((state) => state.setDisplayField)
   const toggleAllCollapsed = useGraphStore((state) => state.toggleAllCollapsed)
 
@@ -213,6 +214,24 @@ export function WorkspaceControls() {
             />
             Edit Lock (inline edit off)
           </label>
+
+          <div className="view-mode-group">
+            <p>Add Node Default Direction</p>
+            <label>
+              Direction
+              <select
+                value={ui.addNodeDirection}
+                onChange={(event) =>
+                  setAddNodeDirection(event.target.value as 'right' | 'left' | 'bottom' | 'top')
+                }
+              >
+                <option value="right">right</option>
+                <option value="left">left</option>
+                <option value="bottom">bottom</option>
+                <option value="top">top</option>
+              </select>
+            </label>
+          </div>
 
           <div className="display-options">
             <p>Custom Display</p>

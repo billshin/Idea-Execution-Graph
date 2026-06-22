@@ -6,6 +6,7 @@ import { isIdeaStatus } from '../constants/status'
 import type {
   GraphSnapshot,
   IdeaEdge,
+  IdeaEdgeData,
   IdeaNode,
   IdeaNodeData,
   IdeaSpaceData,
@@ -37,6 +38,9 @@ interface GraphState {
   onConnect: (connection: Connection) => void
   addNodeAt: (position: XYPosition, parentId?: string) => void
   addConnectedNode: (sourceId: string) => void
+  addConnectedNodeAbove: (sourceId: string) => void
+  addConnectedNodeBelow: (sourceId: string) => void
+  updateEdgeStyle: (edgeId: string, patch: Partial<IdeaEdgeData>) => void
   removeEdge: (edgeId: string) => void
   removeSelectedEdge: () => void
   removeNode: (nodeId: string) => void
@@ -50,6 +54,7 @@ interface GraphState {
   setFocusMode: (enabled: boolean) => void
   setFinishMode: (enabled: boolean) => void
   setEditLock: (enabled: boolean) => void
+  setAddNodeDirection: (direction: WorkspaceUiState['addNodeDirection']) => void
   setDisplayField: (field: keyof WorkspaceUiState['displayFields'], value: boolean) => void
   addParkingItem: (content: string) => void
   updateParkingItem: (itemId: string, content: string) => void
@@ -67,6 +72,99 @@ function createId(prefix: string): string {
 
 function nowIso(): string {
   return new Date().toISOString()
+}
+
+const DEFAULT_EDGE_DATA: IdeaEdgeData = {
+  lineStyle: 'solid',
+  arrowStyle: 'none',
+}
+
+function normalizeEdge(edge: IdeaEdge): IdeaEdge {
+  return {
+    ...edge,
+    sourceHandle: edge.sourceHandle ?? 'source-right',
+    targetHandle: edge.targetHandle ?? 'target-left',
+    data: {
+      ...DEFAULT_EDGE_DATA,
+      ...(edge.data ?? {}),
+    },
+  }
+}
+
+function createStyledEdge(
+  source: string,
+  target: string,
+  sourceHandle = 'source-right',
+  targetHandle = 'target-left',
+): IdeaEdge {
+  return {
+    id: createId('edge'),
+    source,
+    target,
+    sourceHandle,
+    targetHandle,
+    data: { ...DEFAULT_EDGE_DATA },
+  }
+}
+
+function addDirectionalConnectedNode(state: GraphState, sourceId: string, direction: 'above' | 'below') {
+  const source = state.nodes.find((node) => node.id === sourceId)
+  if (!source) {
+    return state
+  }
+
+  const siblingsInDirection = state.edges
+    .filter((edge) => edge.source === sourceId)
+    .map((edge) => state.nodes.find((node) => node.id === edge.target))
+    .filter((node): node is IdeaNode => Boolean(node))
+    .filter((node) =>
+      direction === 'above' ? node.position.y < source.position.y : node.position.y >= source.position.y,
+    ).length
+
+  const yOffsetBase = 180
+  const yOffsetStep = 20
+  const yOffset = yOffsetBase + siblingsInDirection * yOffsetStep
+
+  const id = createId('node')
+  const nextNode: IdeaNode = {
+    id,
+    type: 'ideaNode',
+    position: {
+      x: source.position.x + 20,
+      y: direction === 'above' ? source.position.y - yOffset : source.position.y + yOffset,
+    },
+    data: {
+      ...source.data,
+      title: direction === 'above' ? '前置步驟' : '後續步驟',
+      subtitle: direction === 'above' ? '這一步之前要先完成什麼?' : '下一步要做什麼?',
+      status: 'open',
+      labels: direction === 'above' ? ['upstream'] : ['downstream'],
+      isFocusPath: false,
+      tasks: [],
+      files: [],
+      collapsed: false,
+      hiddenTaskCount: 0,
+      hiddenDoneTaskCount: 0,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    },
+  }
+
+  return {
+    undoStack: pushUndoStack(state),
+    nodes: [...state.nodes, nextNode],
+    edges: addEdge(
+      createStyledEdge(
+        sourceId,
+        id,
+        direction === 'above' ? 'source-top' : 'source-bottom',
+        'target-top',
+      ),
+      state.edges,
+    ),
+    selectedNodeId: id,
+    selectedEdgeId: undefined,
+  }
 }
 
 function cloneSnapshot(
@@ -131,9 +229,22 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   onConnect: (connection) => {
+    if (!connection.source || !connection.target) {
+      return
+    }
+
     set((state) => ({
       undoStack: pushUndoStack(state),
-      edges: addEdge({ ...connection, id: createId('edge') }, state.edges),
+      edges: addEdge(
+        {
+          ...connection,
+          sourceHandle: connection.sourceHandle ?? 'source-right',
+          targetHandle: connection.targetHandle ?? 'target-left',
+          id: createId('edge'),
+          data: { ...DEFAULT_EDGE_DATA },
+        },
+        state.edges,
+      ),
     }))
   },
 
@@ -166,7 +277,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
     set((state) => {
       const edges = parentId
-        ? addEdge({ id: createId('edge'), source: parentId, target: id }, state.edges)
+        ? addEdge(createStyledEdge(parentId, id), state.edges)
         : state.edges
 
       return {
@@ -187,15 +298,41 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       }
 
       const linkedChildCount = state.edges.filter((edge) => edge.source === sourceId).length
+      const direction = state.ui.addNodeDirection
+      const offset = 260 + linkedChildCount * 10
+
+      const nextPosition = (() => {
+        switch (direction) {
+          case 'left':
+            return { x: source.position.x - offset, y: source.position.y + 20 }
+          case 'bottom':
+            return { x: source.position.x + 20, y: source.position.y + offset }
+          case 'top':
+            return { x: source.position.x + 20, y: source.position.y - offset }
+          case 'right':
+          default:
+            return { x: source.position.x + offset, y: source.position.y + 20 }
+        }
+      })()
+
+      const handleByDirection = (() => {
+        switch (direction) {
+          case 'bottom':
+            return { sourceHandle: 'source-bottom', targetHandle: 'target-top' }
+          case 'top':
+            return { sourceHandle: 'source-bottom', targetHandle: 'target-top' }
+          case 'left':
+          case 'right':
+          default:
+            return { sourceHandle: 'source-right', targetHandle: 'target-left' }
+        }
+      })()
 
       const id = createId('node')
       const nextNode: IdeaNode = {
         id,
         type: 'ideaNode',
-        position: {
-          x: source.position.x + 260 + linkedChildCount * 10,
-          y: source.position.y + 40 + linkedChildCount * 10,
-        },
+        position: nextPosition,
         data: {
           ...source.data,
           title: '解決方式',
@@ -216,11 +353,49 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       return {
         undoStack: pushUndoStack(state),
         nodes: [...state.nodes, nextNode],
-        edges: addEdge({ id: createId('edge'), source: sourceId, target: id }, state.edges),
+        edges: addEdge(
+          createStyledEdge(sourceId, id, handleByDirection.sourceHandle, handleByDirection.targetHandle),
+          state.edges,
+        ),
         selectedNodeId: id,
         selectedEdgeId: undefined,
       }
     })
+  },
+
+  addConnectedNodeAbove: (sourceId) => {
+    set((state) => addDirectionalConnectedNode(state, sourceId, 'above'))
+  },
+
+  addConnectedNodeBelow: (sourceId) => {
+    set((state) => addDirectionalConnectedNode(state, sourceId, 'below'))
+  },
+
+  updateEdgeStyle: (edgeId, patch) => {
+    const lineStyle = patch.lineStyle
+    const arrowStyle = patch.arrowStyle
+
+    const validLineStyle = !lineStyle || lineStyle === 'solid' || lineStyle === 'dashed'
+    const validArrowStyle = !arrowStyle || arrowStyle === 'none' || arrowStyle === 'arrow'
+    if (!validLineStyle || !validArrowStyle) {
+      return
+    }
+
+    set((state) => ({
+      undoStack: pushUndoStack(state),
+      edges: state.edges.map((edge) =>
+        edge.id === edgeId
+          ? {
+              ...edge,
+              data: {
+                ...DEFAULT_EDGE_DATA,
+                ...(edge.data ?? {}),
+                ...patch,
+              },
+            }
+          : edge,
+      ),
+    }))
   },
 
   removeEdge: (edgeId) => {
@@ -353,6 +528,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
+  setAddNodeDirection: (direction) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        addNodeDirection: direction,
+      },
+    }))
+  },
+
   setDisplayField: (field, value) => {
     set((state) => ({
       ui: {
@@ -428,7 +612,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   loadSnapshot: (snapshot) => {
     set({
       nodes: snapshot.nodes,
-      edges: snapshot.edges,
+      edges: snapshot.edges.map((edge) => normalizeEdge(edge)),
       parkingLot: snapshot.parkingLot,
       ideaSpace: snapshot.ideaSpace,
       ui: snapshot.ui,

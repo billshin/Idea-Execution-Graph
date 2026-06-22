@@ -11,6 +11,7 @@ export const DEFAULT_UI_STATE: WorkspaceUiState = {
   focusMode: false,
   finishMode: false,
   editLock: false,
+  addNodeDirection: 'right',
   displayFields: DEFAULT_DISPLAY_FIELDS,
   mode: 'default',
   viewport: { x: 0, y: 0, zoom: 1 },

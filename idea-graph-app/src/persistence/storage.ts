@@ -83,6 +83,10 @@ export function loadSnapshot(): GraphSnapshot {
       ui: {
         ...DEFAULT_SNAPSHOT.ui,
         ...parsed.ui,
+        addNodeDirection:
+          typeof parsed.ui.addNodeDirection === 'string'
+            ? parsed.ui.addNodeDirection
+            : DEFAULT_SNAPSHOT.ui.addNodeDirection,
         displayFields: {
           ...DEFAULT_SNAPSHOT.ui.displayFields,
           ...parsed.ui.displayFields,

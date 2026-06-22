@@ -45,6 +45,8 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const displayFields = useGraphStore((state) => state.ui.displayFields)
   const editLock = useGraphStore((state) => state.ui.editLock)
   const addConnectedNode = useGraphStore((state) => state.addConnectedNode)
+  const addConnectedNodeAbove = useGraphStore((state) => state.addConnectedNodeAbove)
+  const addConnectedNodeBelow = useGraphStore((state) => state.addConnectedNodeBelow)
   const toggleNodeCollapsed = useGraphStore((state) => state.toggleNodeCollapsed)
   const openNodeEditor = useGraphStore((state) => state.openNodeEditor)
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
@@ -77,7 +79,12 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         }
       }}
     >
-      <Handle type="target" position={Position.Left} />
+      <Handle id="target-left" type="target" position={Position.Left} />
+      <Handle id="target-top" type="target" position={Position.Top} />
+
+      <Handle id="source-right" type="source" position={Position.Right} />
+      <Handle id="source-bottom" type="source" position={Position.Bottom} />
+
       <header>
         {displayFields.label && data.labels.length > 0 ? (
           <ul className="label-list top-labels">
@@ -214,6 +221,26 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
 
       {trayOpen ? (
         <div className="node-utility-tray" onClick={(event) => event.stopPropagation()}>
+          {/* <button
+            type="button"
+            className="utility-btn"
+            onClick={(event) => {
+              event.stopPropagation()
+              addConnectedNodeAbove(id)
+            }}
+          >
+            ⬆️ Add Above
+          </button>
+          <button
+            type="button"
+            className="utility-btn"
+            onClick={(event) => {
+              event.stopPropagation()
+              addConnectedNodeBelow(id)
+            }}
+          >
+            ⬇️ Add Below
+          </button> */}
           <select
             className="node-status-select"
             value={data.status}
@@ -230,7 +257,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           </select>
         </div>
       ) : null}
-      <Handle type="source" position={Position.Right} />
     </article>
   )
 }

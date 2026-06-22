@@ -4,10 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import ReactFlow, {
   Background,
   Controls,
+  MarkerType,
   MiniMap,
   type Edge,
   type ReactFlowInstance,
 } from 'reactflow'
+import { STATUS_COLOR_MAP } from '../constants/status'
 import { useProjectStore } from '../store/projectStore'
 import { useGraphStore } from '../store/graphStore'
 import { IdeaSpace } from '../components/controls/IdeaSpace'
@@ -129,6 +131,8 @@ export default function IdeaEditorPage() {
   const addNodeAt = graphStore.addNodeAt
   const setSelectedNode = graphStore.setSelectedNode
   const setSelectedEdge = graphStore.setSelectedEdge
+  const selectedEdgeId = graphStore.selectedEdgeId
+  const updateEdgeStyle = graphStore.updateEdgeStyle
   const removeSelectedEdge = graphStore.removeSelectedEdge
   const removeSelectedNode = graphStore.removeSelectedNode
   const undo = graphStore.undo
@@ -255,11 +259,38 @@ export default function IdeaEditorPage() {
   }, [edges, nodes, ui.finishMode, ui.focusMode])
 
   const renderedEdges = useMemo(() => {
+    const nodeById = new Map(nodes.map((node) => [node.id, node]))
     const nodeIds = new Set(renderedNodes.map((node) => node.id))
+
     return edges
       .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-      .map((edge) => ({ ...edge }))
-  }, [edges, renderedNodes])
+      .map((edge) => {
+        const targetNode = nodeById.get(edge.target)
+        const color = targetNode
+          ? targetNode.data.status === 'open'
+            ? '#94a3b8'
+            : STATUS_COLOR_MAP[targetNode.data.status]
+          : '#94a3b8'
+        const lineStyle = edge.data?.lineStyle ?? 'solid'
+        const arrowStyle = edge.data?.arrowStyle ?? 'none'
+
+        return {
+          ...edge,
+          style: {
+            ...(edge.style ?? {}),
+            stroke: color,
+            strokeWidth: 2,
+            strokeDasharray: lineStyle === 'dashed' ? '8 6' : undefined,
+          },
+          markerEnd: arrowStyle === 'arrow' ? { type: MarkerType.ArrowClosed, color } : undefined,
+        }
+      })
+  }, [edges, nodes, renderedNodes])
+
+  const selectedEdge = useMemo(
+    () => (selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined),
+    [edges, selectedEdgeId],
+  )
 
   if (!projectId) return null
 
@@ -305,6 +336,39 @@ export default function IdeaEditorPage() {
           <p className="collapsed-idea-space-title">{ideaSpace.title || '新想法'}</p>
           <p className="collapsed-idea-space-subtitle">{ideaSpace.subtitle || '為了什麼目的'}</p>
         </div>
+        {selectedEdge ? (
+          <div className="edge-style-panel" onClick={(event) => event.stopPropagation()}>
+            <p>Edge Style</p>
+            <label>
+              Line
+              <select
+                value={selectedEdge.data?.lineStyle ?? 'solid'}
+                onChange={(event) =>
+                  updateEdgeStyle(selectedEdge.id, {
+                    lineStyle: event.target.value as 'solid' | 'dashed',
+                  })
+                }
+              >
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+              </select>
+            </label>
+            <label>
+              Arrow
+              <select
+                value={selectedEdge.data?.arrowStyle ?? 'none'}
+                onChange={(event) =>
+                  updateEdgeStyle(selectedEdge.id, {
+                    arrowStyle: event.target.value as 'none' | 'arrow',
+                  })
+                }
+              >
+                <option value="none">None</option>
+                <option value="arrow">Arrow</option>
+              </select>
+            </label>
+          </div>
+        ) : null}
         <ReactFlow
           nodes={renderedNodes}
           edges={renderedEdges}

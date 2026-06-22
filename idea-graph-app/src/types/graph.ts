@@ -62,13 +62,22 @@ export interface IdeaNodeData {
   hiddenDoneTaskCount: number
 }
 
+export type EdgeLineStyle = 'solid' | 'dashed'
+export type EdgeArrowStyle = 'none' | 'arrow'
+
+export interface IdeaEdgeData {
+  lineStyle: EdgeLineStyle
+  arrowStyle: EdgeArrowStyle
+}
+
 export type IdeaNode = Node<IdeaNodeData>
-export type IdeaEdge = Edge
+export type IdeaEdge = Edge<IdeaEdgeData>
 
 export interface WorkspaceUiState {
   focusMode: boolean
   finishMode: boolean
   editLock: boolean
+  addNodeDirection: 'right' | 'left' | 'bottom' | 'top'
   displayFields: Record<DisplayField, boolean>
   mode: 'default' | 'focus' | 'finish'
   viewport: {
