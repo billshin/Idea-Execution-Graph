@@ -80,7 +80,7 @@
   top: 120px;
   left: 10px;
   z-index: 20;
-  width: 180px;
+  width: 120px;
   border: 1px solid #d7dbe4;
   background: #ffffff;
   border-radius: 10px;
@@ -506,8 +506,10 @@ textarea {
 
 .task-mini-list {
   list-style: none;
-  margin: 0;
+  margin: 6px 0 0;
   padding: 0;
+  padding-top: 6px;
+  border-top: 1px solid #d5dbe8;
   display: grid;
   gap: 4px;
 }

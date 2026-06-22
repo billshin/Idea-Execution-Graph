@@ -45,8 +45,6 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const displayFields = useGraphStore((state) => state.ui.displayFields)
   const editLock = useGraphStore((state) => state.ui.editLock)
   const addConnectedNode = useGraphStore((state) => state.addConnectedNode)
-  const addConnectedNodeAbove = useGraphStore((state) => state.addConnectedNodeAbove)
-  const addConnectedNodeBelow = useGraphStore((state) => state.addConnectedNodeBelow)
   const toggleNodeCollapsed = useGraphStore((state) => state.toggleNodeCollapsed)
   const openNodeEditor = useGraphStore((state) => state.openNodeEditor)
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
@@ -206,12 +204,22 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       {displayFields.targetDate && data.targetDate ? <small>Target: {data.targetDate}</small> : null}
       {displayFields.taskList && data.tasks.length > 0 ? (
         <ul className="task-mini-list">
-          {data.tasks.slice(0, 3).map((task) => (
-            <li key={task.id} className={task.done ? 'task-completed' : ''}>
-                <span className="task-title">{task.title}</span>
-                {task.conclusion && <span className="task-conclusion">{task.conclusion}</span>}
-            </li>
-          ))}
+          {data.tasks.slice(0, 3).map((task) => {
+            const category = task.category.trim()
+            const title = task.title.trim()
+            const conclusion = task.conclusion.trim()
+            const line = [category ? `[${category}]` : '', title, conclusion].filter(Boolean).join(' | ')
+
+            if (!line) {
+              return null
+            }
+
+            return (
+              <li key={task.id} className={task.done ? 'task-completed' : ''}>
+                <span className="task-title">{line}</span>
+              </li>
+            )
+          })}
         </ul>
       ) : null}
 

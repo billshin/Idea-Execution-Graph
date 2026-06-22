@@ -9,7 +9,7 @@ export function NodeDetailPanel() {
   const node = useSelectedNode()
   const updateNode = useGraphStore((state) => state.updateNode)
   const [taskTitle, setTaskTitle] = useState('')
-  const [taskRequired, setTaskRequired] = useState('')
+  const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
 
   const labels = useMemo(() => (node?.data.labels ?? []).join(', '), [node?.data.labels])
@@ -34,7 +34,7 @@ export function NodeDetailPanel() {
         {
           id: crypto.randomUUID(),
           title: taskTitle.trim(),
-          required: taskRequired.trim(),
+          category: taskCategory.trim(),
           conclusion: taskConclusion.trim(),
           done: false,
         },
@@ -42,7 +42,7 @@ export function NodeDetailPanel() {
     })
 
     setTaskTitle('')
-    setTaskRequired('')
+    setTaskCategory('')
     setTaskConclusion('')
   }
 
@@ -63,7 +63,7 @@ export function NodeDetailPanel() {
   return (
     <section className="panel detail-panel detail-panel-2col">
       <h3>Node Detail</h3>
-      
+
       <div className="detail-main-grid">
         {/* Left Column: Controls */}
         <div className="detail-left-column">
@@ -152,9 +152,9 @@ export function NodeDetailPanel() {
                     />
                     <input
                       className="task-required-field"
-                      value={task.required}
-                      onChange={(event) => updateTask(task.id, { required: event.target.value })}
-                      placeholder="Required"
+                      value={task.category}
+                      onChange={(event) => updateTask(task.id, { category: event.target.value })}
+                      placeholder="Category"
                     />
                     <input
                       className="task-conclusion-field"
@@ -173,17 +173,18 @@ export function NodeDetailPanel() {
                 </div>
               ))}
             </div>
-            
+
             <div className="task-add-form">
+
+              <input
+                placeholder="Category"
+                value={taskCategory}
+                onChange={(event) => setTaskCategory(event.target.value)}
+              />
               <input
                 placeholder="Task title"
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
-              />
-              <input
-                placeholder="Required details"
-                value={taskRequired}
-                onChange={(event) => setTaskRequired(event.target.value)}
               />
               <input
                 placeholder="Conclusion"

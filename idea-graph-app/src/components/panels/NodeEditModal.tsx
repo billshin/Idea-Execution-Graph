@@ -10,7 +10,7 @@ export function NodeEditModal() {
   const closeNodeEditor = useGraphStore((state) => state.closeNodeEditor)
   const updateNode = useGraphStore((state) => state.updateNode)
   const [taskTitle, setTaskTitle] = useState('')
-  const [taskRequired, setTaskRequired] = useState('')
+  const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
   const [labelsInput, setLabelsInput] = useState('')
 
@@ -43,7 +43,7 @@ export function NodeEditModal() {
         {
           id: crypto.randomUUID(),
           title: taskTitle.trim(),
-          required: taskRequired.trim(),
+          category: taskCategory.trim(),
           conclusion: taskConclusion.trim(),
           done: false,
         },
@@ -51,7 +51,7 @@ export function NodeEditModal() {
     })
 
     setTaskTitle('')
-    setTaskRequired('')
+    setTaskCategory('')
     setTaskConclusion('')
   }
 
@@ -168,17 +168,18 @@ export function NodeEditModal() {
                     />
                     <div className="task-row-content">
                       <input
+                        className="task-required-field"
+                        value={task.category}
+                        onChange={(event) => updateTask(task.id, { category: event.target.value })}
+                        placeholder="Category"
+                      />
+                      <input
                         className="task-title-field"
                         value={task.title}
                         onChange={(event) => updateTask(task.id, { title: event.target.value })}
                         placeholder="Task title"
                       />
-                      <input
-                        className="task-required-field"
-                        value={task.required}
-                        onChange={(event) => updateTask(task.id, { required: event.target.value })}
-                        placeholder="Required"
-                      />
+
                       <input
                         className="task-conclusion-field"
                         value={task.conclusion}
@@ -196,17 +197,18 @@ export function NodeEditModal() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="task-add-form">
+
+                <input
+                  placeholder="Category"
+                  value={taskCategory}
+                  onChange={(event) => setTaskCategory(event.target.value)}
+                />
                 <input
                   placeholder="Task title"
                   value={taskTitle}
                   onChange={(event) => setTaskTitle(event.target.value)}
-                />
-                <input
-                  placeholder="Required details"
-                  value={taskRequired}
-                  onChange={(event) => setTaskRequired(event.target.value)}
                 />
                 <input
                   placeholder="Conclusion"

@@ -40,14 +40,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   createProject: (title, subtitle = '') => {
     const id = createId('project')
     const now = nowIso()
+    const trimmedTitle = title.trim()
+    const trimmedSubtitle = subtitle.trim()
+    const initialSnapshot = structuredClone(DEFAULT_SNAPSHOT)
+    initialSnapshot.ideaSpace = {
+      ...initialSnapshot.ideaSpace,
+      title: trimmedTitle,
+      subtitle: trimmedSubtitle,
+    }
     
     const newProject: IdeaProject = {
       id,
-      title,
-      subtitle,
+      title: trimmedTitle,
+      subtitle: trimmedSubtitle,
       createdAt: now,
       updatedAt: now,
-      snapshot: structuredClone(DEFAULT_SNAPSHOT),
+      snapshot: initialSnapshot,
     }
 
     set((state) => {

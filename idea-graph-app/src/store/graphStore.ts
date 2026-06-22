@@ -336,7 +336,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
         data: {
           ...source.data,
           title: '解決方式',
-          subtitle: '使用什麼方法來解決這個問題?',
+          subtitle: '使用什麼方法?',
           status: 'open',
           labels: ['thinking'],
           isFocusPath: false,

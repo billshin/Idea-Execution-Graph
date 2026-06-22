@@ -10,6 +10,45 @@ interface PersistedPayload {
   ui: GraphSnapshot['ui']
 }
 
+function normalizeTask(task: unknown): GraphSnapshot['nodes'][number]['data']['tasks'][number] | null {
+  if (!isObject(task) || typeof task.id !== 'string') {
+    return null
+  }
+
+  const title = typeof task.title === 'string' ? task.title : ''
+  const conclusion = typeof task.conclusion === 'string' ? task.conclusion : ''
+  const category =
+    typeof task.category === 'string'
+      ? task.category
+      : typeof task.required === 'string'
+        ? task.required
+        : ''
+
+  return {
+    id: task.id,
+    title,
+    category,
+    conclusion,
+    done: Boolean(task.done),
+  }
+}
+
+function normalizeNode(node: GraphSnapshot['nodes'][number]): GraphSnapshot['nodes'][number] {
+  const tasks = Array.isArray(node.data.tasks)
+    ? node.data.tasks
+        .map((task) => normalizeTask(task))
+        .filter((task): task is NonNullable<ReturnType<typeof normalizeTask>> => task !== null)
+    : []
+
+  return {
+    ...node,
+    data: {
+      ...node.data,
+      tasks,
+    },
+  }
+}
+
 function normalizeParkingLotItem(value: unknown): GraphSnapshot['parkingLot'][number] | null {
   if (!isObject(value) || typeof value.id !== 'string') {
     return null
@@ -74,7 +113,7 @@ export function loadSnapshot(): GraphSnapshot {
       : DEFAULT_SNAPSHOT.ideaSpace
 
     return {
-      nodes: parsed.graph.nodes,
+      nodes: parsed.graph.nodes.map((node) => normalizeNode(node)),
       edges: parsed.graph.edges,
       parkingLot: parsed.graph.parkingLot
         .map((item) => normalizeParkingLotItem(item))

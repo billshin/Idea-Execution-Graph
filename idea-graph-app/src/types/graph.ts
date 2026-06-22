@@ -26,7 +26,7 @@ export interface FileReference {
 export interface NodeTask {
   id: string
   title: string
-  required: string
+  category: string
   conclusion: string
   done: boolean
 }

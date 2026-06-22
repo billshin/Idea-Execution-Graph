@@ -170,6 +170,11 @@ export default function IdeaEditorPage() {
       return
     }
 
+    // Avoid high-frequency writes while dragging nodes; save once after drag ends.
+    if (nodes.some((node) => Boolean(node.dragging))) {
+      return
+    }
+
     if (projectId) {
       const { updateProjectSnapshot } = useProjectStore.getState()
       updateProjectSnapshot(projectId, { nodes, edges, parkingLot, ideaSpace, ui })
