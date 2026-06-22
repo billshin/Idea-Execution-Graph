@@ -80,6 +80,18 @@
   transform: scale(0.98);
 }
 
+.create-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 14px;
+  color: #27324d;
+}
+
+.create-checkbox-row input {
+  margin: 0;
+}
+
 .projects-section {
   max-width: 1000px;
   margin: 0 auto;
@@ -166,6 +178,22 @@
   font-size: 13px;
   margin: 0 0 12px 0;
   line-height: 1.4;
+}
+
+.project-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.project-tag {
+  border-radius: 999px;
+  border: 1px solid #d7dbe4;
+  background: #f8fafc;
+  color: #334155;
+  padding: 3px 9px;
+  font-size: 11px;
 }
 
 .project-meta {

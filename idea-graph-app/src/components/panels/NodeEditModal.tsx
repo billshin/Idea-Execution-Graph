@@ -9,6 +9,7 @@ export function NodeEditModal() {
   const node = useEditingNode()
   const closeNodeEditor = useGraphStore((state) => state.closeNodeEditor)
   const updateNode = useGraphStore((state) => state.updateNode)
+  const isReadOnly = useGraphStore((state) => state.accessMode === 'read-only')
   const [taskTitle, setTaskTitle] = useState('')
   const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
@@ -34,6 +35,10 @@ export function NodeEditModal() {
 
   const saveTask = () => {
     if (!taskTitle.trim()) {
+      return
+    }
+
+    if (isReadOnly) {
       return
     }
 
@@ -95,6 +100,7 @@ export function NodeEditModal() {
               Title
               <input
                 value={node.data.title}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { title: event.target.value })}
               />
             </label>
@@ -102,6 +108,7 @@ export function NodeEditModal() {
               Subtitle
               <input
                 value={node.data.subtitle}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { subtitle: event.target.value })}
               />
             </label>
@@ -110,6 +117,7 @@ export function NodeEditModal() {
               <input
                 type="date"
                 value={node.data.targetDate ?? ''}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { targetDate: event.target.value })}
               />
             </label>
@@ -117,6 +125,7 @@ export function NodeEditModal() {
               Conclusion
               <input
                 value={node.data.conclusion}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { conclusion: event.target.value })}
               />
             </label>
@@ -124,6 +133,7 @@ export function NodeEditModal() {
               Status
               <select
                 value={node.data.status}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { status: event.target.value as IdeaStatus })}
               >
                 {ALLOWED_STATUSES.map((status) => (
@@ -137,6 +147,7 @@ export function NodeEditModal() {
               Labels (comma separated)
               <input
                 value={labelsInput}
+                disabled={isReadOnly}
                 onChange={(event) => setLabelsInput(event.target.value)}
                 onBlur={commitLabels}
                 onKeyDown={(event) => {
@@ -150,6 +161,7 @@ export function NodeEditModal() {
               <input
                 type="checkbox"
                 checked={node.data.isFocusPath}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { isFocusPath: event.target.checked })}
               />
               <span>Focus Path</span>
@@ -163,6 +175,7 @@ export function NodeEditModal() {
                     <input
                       type="checkbox"
                       checked={task.done}
+                      disabled={isReadOnly}
                       onChange={(event) => updateTask(task.id, { done: event.target.checked })}
                       className="task-checkbox"
                     />
@@ -170,12 +183,14 @@ export function NodeEditModal() {
                       <input
                         className="task-required-field"
                         value={task.category}
+                        disabled={isReadOnly}
                         onChange={(event) => updateTask(task.id, { category: event.target.value })}
                         placeholder="Category"
                       />
                       <input
                         className="task-title-field"
                         value={task.title}
+                        disabled={isReadOnly}
                         onChange={(event) => updateTask(task.id, { title: event.target.value })}
                         placeholder="Task title"
                       />
@@ -183,6 +198,7 @@ export function NodeEditModal() {
                       <input
                         className="task-conclusion-field"
                         value={task.conclusion}
+                        disabled={isReadOnly}
                         onChange={(event) => updateTask(task.id, { conclusion: event.target.value })}
                         placeholder="Conclusion"
                       />
@@ -190,6 +206,7 @@ export function NodeEditModal() {
                     <button
                       type="button"
                       className="task-remove-btn"
+                      disabled={isReadOnly}
                       onClick={() => removeTask(task.id)}
                     >
                       ✕
@@ -203,19 +220,22 @@ export function NodeEditModal() {
                 <input
                   placeholder="Category"
                   value={taskCategory}
+                  disabled={isReadOnly}
                   onChange={(event) => setTaskCategory(event.target.value)}
                 />
                 <input
                   placeholder="Task title"
                   value={taskTitle}
+                  disabled={isReadOnly}
                   onChange={(event) => setTaskTitle(event.target.value)}
                 />
                 <input
                   placeholder="Conclusion"
                   value={taskConclusion}
+                  disabled={isReadOnly}
                   onChange={(event) => setTaskConclusion(event.target.value)}
                 />
-                <button type="button" onClick={saveTask}>
+                <button type="button" onClick={saveTask} disabled={isReadOnly}>
                   Add Task
                 </button>
               </div>
@@ -228,6 +248,7 @@ export function NodeEditModal() {
               Markdown Content
               <textarea
                 value={node.data.content}
+                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { content: event.target.value })}
               />
             </label>

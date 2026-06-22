@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Connection, EdgeChange, NodeChange, XYPosition } from 'reactflow'
 import { addEdge, applyEdgeChanges, applyNodeChanges } from 'reactflow'
 import { DEFAULT_EDGES, DEFAULT_NODES, DEFAULT_UI_STATE } from '../constants/defaults'
+import { DEFAULT_SNAPSHOT } from '../constants/defaults'
 import { isIdeaStatus } from '../constants/status'
 import type {
   GraphSnapshot,
@@ -11,6 +12,7 @@ import type {
   IdeaNodeData,
   IdeaSpaceData,
   ParkingLotItem,
+  ProjectAccessMode,
   WorkspaceUiState,
 } from '../types/graph'
 
@@ -28,6 +30,7 @@ interface GraphState {
   edges: IdeaEdge[]
   parkingLot: ParkingLotItem[]
   ideaSpace: IdeaSpaceData
+  accessMode: ProjectAccessMode
   ui: WorkspaceUiState
   selectedNodeId?: string
   selectedEdgeId?: string
@@ -60,6 +63,7 @@ interface GraphState {
   updateParkingItem: (itemId: string, content: string) => void
   removeParkingItem: (itemId: string) => void
   updateIdeaSpace: (patch: Partial<IdeaSpaceData>) => void
+  setAccessMode: (mode: ProjectAccessMode) => void
   openNodeEditor: (nodeId: string) => void
   closeNodeEditor: () => void
   undo: () => void
@@ -189,15 +193,16 @@ function pushUndoStack(state: GraphState): HistoryEntry[] {
   return next
 }
 
+function isReadOnlyMode(state: GraphState): boolean {
+  return state.accessMode === 'read-only'
+}
+
 export const useGraphStore = create<GraphState>((set, get) => ({
   nodes: DEFAULT_NODES,
   edges: DEFAULT_EDGES,
   parkingLot: [],
-  ideaSpace: {
-    title: '',
-    subtitle: '',
-    targetDate: '',
-  },
+  ideaSpace: structuredClone(DEFAULT_SNAPSHOT.ideaSpace),
+  accessMode: 'edit',
   ui: DEFAULT_UI_STATE,
   selectedNodeId: DEFAULT_NODES[0]?.id,
   selectedEdgeId: undefined,
@@ -208,10 +213,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const shouldRecordHistory = changes.some((change) => change.type !== 'select')
 
     set((state) => {
-      const nextNodes = applyNodeChanges(changes, state.nodes)
+      const allowedChanges = isReadOnlyMode(state) ? changes.filter((change) => change.type === 'select') : changes
+      const nextNodes = applyNodeChanges(allowedChanges, state.nodes)
       return {
         nodes: nextNodes,
-        undoStack: shouldRecordHistory ? pushUndoStack(state) : state.undoStack,
+        undoStack: !isReadOnlyMode(state) && shouldRecordHistory ? pushUndoStack(state) : state.undoStack,
       }
     })
   },
@@ -220,16 +226,21 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const shouldRecordHistory = changes.some((change) => change.type !== 'select')
 
     set((state) => {
-      const nextEdges = applyEdgeChanges(changes, state.edges)
+      const allowedChanges = isReadOnlyMode(state) ? changes.filter((change) => change.type === 'select') : changes
+      const nextEdges = applyEdgeChanges(allowedChanges, state.edges)
       return {
         edges: nextEdges,
-        undoStack: shouldRecordHistory ? pushUndoStack(state) : state.undoStack,
+        undoStack: !isReadOnlyMode(state) && shouldRecordHistory ? pushUndoStack(state) : state.undoStack,
       }
     })
   },
 
   onConnect: (connection) => {
     if (!connection.source || !connection.target) {
+      return
+    }
+
+    if (get().accessMode === 'read-only') {
       return
     }
 
@@ -249,6 +260,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   addNodeAt: (position, parentId) => {
+    if (get().accessMode === 'read-only') {
+      return
+    }
+
     const id = createId('node')
     const nextNode: IdeaNode = {
       id,
@@ -292,6 +307,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   addConnectedNode: (sourceId) => {
     set((state) => {
+      if (isReadOnlyMode(state)) {
+        return state
+      }
+
       const source = state.nodes.find((node) => node.id === sourceId)
       if (!source) {
         return state
@@ -299,7 +318,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
       const linkedChildCount = state.edges.filter((edge) => edge.source === sourceId).length
       const direction = state.ui.addNodeDirection
-      const offset = 260 + linkedChildCount * 10
+      const offset = 160 + linkedChildCount * 10
 
       const nextPosition = (() => {
         switch (direction) {
@@ -311,7 +330,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
             return { x: source.position.x + 20, y: source.position.y - offset }
           case 'right':
           default:
-            return { x: source.position.x + offset, y: source.position.y + 20 }
+            return { x: source.position.x + offset + 100, y: source.position.y + 20 }
         }
       })()
 
@@ -364,11 +383,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   addConnectedNodeAbove: (sourceId) => {
-    set((state) => addDirectionalConnectedNode(state, sourceId, 'above'))
+    set((state) => (isReadOnlyMode(state) ? state : addDirectionalConnectedNode(state, sourceId, 'above')))
   },
 
   addConnectedNodeBelow: (sourceId) => {
-    set((state) => addDirectionalConnectedNode(state, sourceId, 'below'))
+    set((state) => (isReadOnlyMode(state) ? state : addDirectionalConnectedNode(state, sourceId, 'below')))
   },
 
   updateEdgeStyle: (edgeId, patch) => {
@@ -381,7 +400,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       return
     }
 
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       edges: state.edges.map((edge) =>
         edge.id === edgeId
@@ -399,7 +418,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   removeEdge: (edgeId) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       edges: state.edges.filter((edge) => edge.id !== edgeId),
       selectedEdgeId: state.selectedEdgeId === edgeId ? undefined : state.selectedEdgeId,
@@ -416,7 +435,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   removeNode: (nodeId) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       nodes: state.nodes.filter((node) => node.id !== nodeId),
       edges: state.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
@@ -444,7 +463,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   updateNode: (nodeId, patch) => {
-    set((state) => ({
+    set((state) => {
+      if (isReadOnlyMode(state)) {
+        return state
+      }
+
+      return {
       undoStack: pushUndoStack(state),
       nodes: state.nodes.map((node) => {
         if (node.id !== nodeId) {
@@ -464,11 +488,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
           },
         }
       }),
-    }))
+    }})
   },
 
   toggleNodeCollapsed: (nodeId) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       nodes: state.nodes.map((node) =>
         node.id === nodeId
@@ -479,7 +503,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   toggleAllCollapsed: (collapsed) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       nodes: state.nodes.map((node) => ({
         ...node,
@@ -550,14 +574,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   addParkingItem: (content) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       parkingLot: [...state.parkingLot, { id: createId('parking'), content }],
     }))
   },
 
   updateParkingItem: (itemId, content) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       parkingLot: state.parkingLot.map((item) =>
         item.id === itemId ? { ...item, content } : item,
@@ -566,14 +590,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   removeParkingItem: (itemId) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       undoStack: pushUndoStack(state),
       parkingLot: state.parkingLot.filter((item) => item.id !== itemId),
     }))
   },
 
   updateIdeaSpace: (patch) => {
-    set((state) => ({
+    set((state) => (isReadOnlyMode(state) ? state : {
       ideaSpace: {
         ...state.ideaSpace,
         ...patch,
@@ -581,7 +605,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
+  setAccessMode: (mode) => {
+    set({ accessMode: mode })
+  },
+
   openNodeEditor: (nodeId) => {
+    if (get().accessMode === 'read-only') {
+      return
+    }
+
     set({ editingNodeId: nodeId, selectedNodeId: nodeId, selectedEdgeId: undefined })
   },
 
@@ -615,6 +647,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       edges: snapshot.edges.map((edge) => normalizeEdge(edge)),
       parkingLot: snapshot.parkingLot,
       ideaSpace: snapshot.ideaSpace,
+      accessMode: 'edit',
       ui: snapshot.ui,
       selectedNodeId: snapshot.nodes[0]?.id,
       selectedEdgeId: undefined,

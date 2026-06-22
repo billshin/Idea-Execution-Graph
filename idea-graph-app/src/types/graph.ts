@@ -36,10 +36,21 @@ export interface ParkingLotItem {
   content: string
 }
 
+export interface PasswordHashValue {
+  salt: string
+  hash: string
+}
+
+export type ProjectAccessMode = 'edit' | 'read-only'
+
 export interface IdeaSpaceData {
   title: string
   subtitle: string
   targetDate: string
+  category: string
+  author: string
+  readOnly: boolean
+  password: PasswordHashValue | null
 }
 
 export interface IdeaNodeData {
@@ -107,6 +118,14 @@ export interface IdeaProject {
   createdAt: string
   updatedAt: string
   snapshot: GraphSnapshot
+}
+
+export interface CreateProjectInput {
+  title: string
+  subtitle?: string
+  category?: string
+  author?: string
+  readOnly?: boolean
 }
 
 export type AppPage = 'list' | 'editor'

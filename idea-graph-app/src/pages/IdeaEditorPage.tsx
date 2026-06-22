@@ -22,6 +22,7 @@ import { NodeEditModal } from '../components/panels/NodeEditModal'
 import logoImage from '../assets/Logo.png'
 import '../App.css'
 import type { IdeaNode } from '../types/graph'
+import { hasProtectedPassword, resolveDefaultProjectAccessMode, resolveProjectAccessModeFromPassword } from '../utils/projectAccess'
 
 const nodeTypes = {
   ideaNode: IdeaNodeCard,
@@ -119,23 +120,25 @@ export default function IdeaEditorPage() {
   const hydratedProjectIdRef = useRef<string | null>(null)
 
   const { projects, goToList } = useProjectStore()
-  const graphStore = useGraphStore()
-  const nodes = graphStore.nodes
-  const edges = graphStore.edges
-  const parkingLot = graphStore.parkingLot
-  const ideaSpace = graphStore.ideaSpace
-  const ui = graphStore.ui
-  const onNodesChange = graphStore.onNodesChange
-  const onEdgesChange = graphStore.onEdgesChange
-  const onConnect = graphStore.onConnect
-  const addNodeAt = graphStore.addNodeAt
-  const setSelectedNode = graphStore.setSelectedNode
-  const setSelectedEdge = graphStore.setSelectedEdge
-  const selectedEdgeId = graphStore.selectedEdgeId
-  const updateEdgeStyle = graphStore.updateEdgeStyle
-  const removeSelectedEdge = graphStore.removeSelectedEdge
-  const removeSelectedNode = graphStore.removeSelectedNode
-  const undo = graphStore.undo
+  const nodes = useGraphStore((state) => state.nodes)
+  const edges = useGraphStore((state) => state.edges)
+  const parkingLot = useGraphStore((state) => state.parkingLot)
+  const ideaSpace = useGraphStore((state) => state.ideaSpace)
+  const accessMode = useGraphStore((state) => state.accessMode)
+  const ui = useGraphStore((state) => state.ui)
+  const onNodesChange = useGraphStore((state) => state.onNodesChange)
+  const onEdgesChange = useGraphStore((state) => state.onEdgesChange)
+  const onConnect = useGraphStore((state) => state.onConnect)
+  const addNodeAt = useGraphStore((state) => state.addNodeAt)
+  const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
+  const setSelectedEdge = useGraphStore((state) => state.setSelectedEdge)
+  const selectedEdgeId = useGraphStore((state) => state.selectedEdgeId)
+  const updateEdgeStyle = useGraphStore((state) => state.updateEdgeStyle)
+  const removeSelectedEdge = useGraphStore((state) => state.removeSelectedEdge)
+  const removeSelectedNode = useGraphStore((state) => state.removeSelectedNode)
+  const undo = useGraphStore((state) => state.undo)
+  const loadGraphSnapshot = useGraphStore((state) => state.loadSnapshot)
+  const setAccessMode = useGraphStore((state) => state.setAccessMode)
 
   const currentProject = useMemo(() => {
     if (!projectId) {
@@ -159,14 +162,54 @@ export default function IdeaEditorPage() {
       return
     }
 
-    useProjectStore.getState().goToEditor(projectId)
-    graphStore.loadSnapshot(currentProject.snapshot)
-    hydratedProjectIdRef.current = projectId
-    setHasHydrated(true)
-  }, [projectId, currentProject, navigate, graphStore])
+    let cancelled = false
+
+    const hydrate = async () => {
+      hydratedProjectIdRef.current = projectId
+      useProjectStore.getState().goToEditor(projectId)
+
+      let resolvedMode = resolveDefaultProjectAccessMode(currentProject)
+
+      if (hasProtectedPassword(currentProject)) {
+        const input = window.prompt('此專案已設定 Password。\n輸入密碼進入編輯模式，取消則以訪客查看。')
+
+        if (input) {
+          const passwordMode = await resolveProjectAccessModeFromPassword(currentProject, input)
+          if (passwordMode) {
+            resolvedMode = passwordMode
+          } else {
+            window.alert('密碼錯誤，將以訪客唯讀模式開啟。')
+            resolvedMode = 'read-only'
+          }
+        } else {
+          resolvedMode = 'read-only'
+        }
+      }
+
+      useProjectStore.getState().setProjectAccessMode(projectId, resolvedMode)
+
+      if (cancelled) {
+        return
+      }
+
+      loadGraphSnapshot(currentProject.snapshot)
+      setAccessMode(resolvedMode)
+      setHasHydrated(true)
+    }
+
+    void hydrate()
+
+    return () => {
+      cancelled = true
+    }
+  }, [projectId, navigate, loadGraphSnapshot, setAccessMode])
 
   useEffect(() => {
     if (!hasHydrated) {
+      return
+    }
+
+    if (accessMode === 'read-only') {
       return
     }
 
@@ -179,7 +222,7 @@ export default function IdeaEditorPage() {
       const { updateProjectSnapshot } = useProjectStore.getState()
       updateProjectSnapshot(projectId, { nodes, edges, parkingLot, ideaSpace, ui })
     }
-  }, [projectId, edges, hasHydrated, nodes, parkingLot, ideaSpace, ui])
+  }, [projectId, edges, hasHydrated, nodes, parkingLot, ideaSpace, ui, accessMode])
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -192,6 +235,10 @@ export default function IdeaEditorPage() {
       }
 
       if (event.key === 'Delete' && !isEditingInput) {
+        if (accessMode === 'read-only') {
+          return
+        }
+
         removeSelectedEdge()
         removeSelectedNode()
       }
@@ -199,7 +246,7 @@ export default function IdeaEditorPage() {
 
     window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
-  }, [removeSelectedEdge, removeSelectedNode, undo])
+  }, [removeSelectedEdge, removeSelectedNode, undo, accessMode])
 
   const renderedNodes = useMemo(() => {
     const visibleIds = new Set<string>(nodes.map((node) => node.id))
@@ -348,6 +395,7 @@ export default function IdeaEditorPage() {
               Line
               <select
                 value={selectedEdge.data?.lineStyle ?? 'solid'}
+                disabled={accessMode === 'read-only'}
                 onChange={(event) =>
                   updateEdgeStyle(selectedEdge.id, {
                     lineStyle: event.target.value as 'solid' | 'dashed',
@@ -362,6 +410,7 @@ export default function IdeaEditorPage() {
               Arrow
               <select
                 value={selectedEdge.data?.arrowStyle ?? 'none'}
+                disabled={accessMode === 'read-only'}
                 onChange={(event) =>
                   updateEdgeStyle(selectedEdge.id, {
                     arrowStyle: event.target.value as 'none' | 'arrow',
@@ -381,8 +430,14 @@ export default function IdeaEditorPage() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          nodesDraggable={accessMode !== 'read-only'}
+          nodesConnectable={accessMode !== 'read-only'}
           fitView
           onPaneClick={(event: ReactMouseEvent) => {
+            if (accessMode === 'read-only') {
+              return
+            }
+
             if (event.detail < 2 || event.target !== event.currentTarget) {
               return
             }

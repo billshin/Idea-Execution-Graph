@@ -44,6 +44,7 @@ function InlineInput({
 export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const displayFields = useGraphStore((state) => state.ui.displayFields)
   const editLock = useGraphStore((state) => state.ui.editLock)
+  const accessMode = useGraphStore((state) => state.accessMode)
   const addConnectedNode = useGraphStore((state) => state.addConnectedNode)
   const toggleNodeCollapsed = useGraphStore((state) => state.toggleNodeCollapsed)
   const openNodeEditor = useGraphStore((state) => state.openNodeEditor)
@@ -51,12 +52,14 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const updateNode = useGraphStore((state) => state.updateNode)
   const [editingField, setEditingField] = useState<'title' | 'subtitle' | 'conclusion' | null>(null)
   const [trayOpen, setTrayOpen] = useState(false)
+  const isReadOnly = accessMode === 'read-only'
 
   useEffect(() => {
-    if (editLock) {
+    if (editLock || isReadOnly) {
       setEditingField(null)
+      setTrayOpen(false)
     }
-  }, [editLock])
+  }, [editLock, isReadOnly])
 
   const commitField = (field: 'title' | 'subtitle' | 'conclusion', value: string) => {
     updateNode(id, { [field]: value } as Partial<IdeaNodeData>)
@@ -98,8 +101,11 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             title={data.collapsed ? 'Expand' : 'Collapse'}
             onClick={(event) => {
               event.stopPropagation()
-              toggleNodeCollapsed(id)
+              if (!isReadOnly) {
+                toggleNodeCollapsed(id)
+              }
             }}
+            disabled={isReadOnly}
           >
             {data.collapsed ? '📘' : '📖'}
           </button>
@@ -108,8 +114,11 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             className="gear-btn"
             onClick={(event) => {
               event.stopPropagation()
-              setTrayOpen((current) => !current)
+              if (!isReadOnly) {
+                setTrayOpen((current) => !current)
+              }
             }}
+            disabled={isReadOnly}
           >
             ⚙️
           </button>
@@ -118,8 +127,11 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             className="add-node-inline"
             onClick={(event) => {
               event.stopPropagation()
-              addConnectedNode(id)
+              if (!isReadOnly) {
+                addConnectedNode(id)
+              }
             }}
+            disabled={isReadOnly}
           >
             ➕
           </button>
@@ -127,7 +139,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       </header>
 
       {displayFields.title ? (
-        editingField === 'title' && !editLock ? (
+        editingField === 'title' && !editLock && !isReadOnly ? (
           <InlineInput
             className="inline-title"
             value={data.title}
@@ -141,7 +153,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             style={{ fontWeight: 'bold' }}
             onClick={(event) => {
               event.stopPropagation()
-              if (!editLock) {
+              if (!editLock && !isReadOnly) {
                 setEditingField('title')
               }
             }}
@@ -152,7 +164,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       ) : null}
 
       {displayFields.subtitle && data.subtitle.trim() ? (
-        editingField === 'subtitle' && !editLock ? (
+        editingField === 'subtitle' && !editLock && !isReadOnly ? (
           <InlineInput
             className="inline-field"
             value={data.subtitle}
@@ -166,7 +178,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             className="inline-display subtitle-display"
             onClick={(event) => {
               event.stopPropagation()
-              if (!editLock) {
+              if (!editLock && !isReadOnly) {
                 setEditingField('subtitle')
               }
             }}
@@ -177,7 +189,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       ) : null}
 
       {displayFields.conclusion && data.conclusion.trim() ? (
-        editingField === 'conclusion' && !editLock ? (
+        editingField === 'conclusion' && !editLock && !isReadOnly ? (
           <InlineInput
             className="inline-field"
             value={data.conclusion}
@@ -191,7 +203,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             className="inline-display conclusion-display"
             onClick={(event) => {
               event.stopPropagation()
-              if (!editLock) {
+              if (!editLock && !isReadOnly) {
                 setEditingField('conclusion')
               }
             }}
@@ -252,6 +264,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <select
             className="node-status-select"
             value={data.status}
+            disabled={isReadOnly}
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => updateNode(id, { status: event.target.value as IdeaNodeData['status'] })}
           >

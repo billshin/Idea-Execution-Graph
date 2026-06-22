@@ -8,6 +8,7 @@ import type { IdeaStatus } from '../../types/graph'
 export function NodeDetailPanel() {
   const node = useSelectedNode()
   const updateNode = useGraphStore((state) => state.updateNode)
+  const isReadOnly = useGraphStore((state) => state.accessMode === 'read-only')
   const [taskTitle, setTaskTitle] = useState('')
   const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
@@ -25,6 +26,10 @@ export function NodeDetailPanel() {
 
   const saveTask = () => {
     if (!taskTitle.trim()) {
+      return
+    }
+
+    if (isReadOnly) {
       return
     }
 
@@ -63,6 +68,7 @@ export function NodeDetailPanel() {
   return (
     <section className="panel detail-panel detail-panel-2col">
       <h3>Node Detail</h3>
+      {isReadOnly ? <p className="empty-state">Read-only mode. Node editing is disabled.</p> : null}
 
       <div className="detail-main-grid">
         {/* Left Column: Controls */}
@@ -71,6 +77,7 @@ export function NodeDetailPanel() {
             Title
             <input
               value={node.data.title}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { title: event.target.value })}
             />
           </label>
@@ -78,6 +85,7 @@ export function NodeDetailPanel() {
             Subtitle
             <input
               value={node.data.subtitle}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { subtitle: event.target.value })}
             />
           </label>
@@ -86,6 +94,7 @@ export function NodeDetailPanel() {
             <input
               type="date"
               value={node.data.targetDate ?? ''}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { targetDate: event.target.value })}
             />
           </label>
@@ -93,6 +102,7 @@ export function NodeDetailPanel() {
             Conclusion
             <input
               value={node.data.conclusion}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { conclusion: event.target.value })}
             />
           </label>
@@ -100,6 +110,7 @@ export function NodeDetailPanel() {
             Status
             <select
               value={node.data.status}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { status: event.target.value as IdeaStatus })}
             >
               {ALLOWED_STATUSES.map((status) => (
@@ -113,6 +124,7 @@ export function NodeDetailPanel() {
             Labels (comma separated)
             <input
               value={labels}
+              disabled={isReadOnly}
               onChange={(event) =>
                 updateNode(node.id, {
                   labels: event.target.value
@@ -128,6 +140,7 @@ export function NodeDetailPanel() {
             <input
               type="checkbox"
               checked={node.data.isFocusPath}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { isFocusPath: event.target.checked })}
             />
           </label>
@@ -140,25 +153,30 @@ export function NodeDetailPanel() {
                   <input
                     type="checkbox"
                     checked={task.done}
+                    disabled={isReadOnly}
                     onChange={(event) => updateTask(task.id, { done: event.target.checked })}
                     className="task-checkbox"
                   />
                   <div className="task-row-content">
                     <input
-                      className="task-title-field"
-                      value={task.title}
-                      onChange={(event) => updateTask(task.id, { title: event.target.value })}
-                      placeholder="Task title"
-                    />
-                    <input
                       className="task-required-field"
                       value={task.category}
+                      disabled={isReadOnly}
                       onChange={(event) => updateTask(task.id, { category: event.target.value })}
                       placeholder="Category"
                     />
                     <input
+                      className="task-title-field"
+                      value={task.title}
+                      disabled={isReadOnly}
+                      onChange={(event) => updateTask(task.id, { title: event.target.value })}
+                      placeholder="Task title"
+                    />
+
+                    <input
                       className="task-conclusion-field"
                       value={task.conclusion}
+                      disabled={isReadOnly}
                       onChange={(event) => updateTask(task.id, { conclusion: event.target.value })}
                       placeholder="Conclusion"
                     />
@@ -166,6 +184,7 @@ export function NodeDetailPanel() {
                   <button
                     type="button"
                     className="task-remove-btn"
+                    disabled={isReadOnly}
                     onClick={() => removeTask(task.id)}
                   >
                     ✕
@@ -179,19 +198,22 @@ export function NodeDetailPanel() {
               <input
                 placeholder="Category"
                 value={taskCategory}
+                disabled={isReadOnly}
                 onChange={(event) => setTaskCategory(event.target.value)}
               />
               <input
                 placeholder="Task title"
                 value={taskTitle}
+                disabled={isReadOnly}
                 onChange={(event) => setTaskTitle(event.target.value)}
               />
               <input
                 placeholder="Conclusion"
                 value={taskConclusion}
+                disabled={isReadOnly}
                 onChange={(event) => setTaskConclusion(event.target.value)}
               />
-              <button type="button" onClick={saveTask}>
+              <button type="button" onClick={saveTask} disabled={isReadOnly}>
                 Add Task
               </button>
             </div>
@@ -204,6 +226,7 @@ export function NodeDetailPanel() {
             Markdown Content
             <textarea
               value={node.data.content}
+              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { content: event.target.value })}
               className="markdown-editor"
             />

@@ -61,6 +61,10 @@ export const DEFAULT_SNAPSHOT: GraphSnapshot = {
     title: '',
     subtitle: '',
     targetDate: '',
+    category: '',
+    author: '',
+    readOnly: false,
+    password: null,
   },
   ui: DEFAULT_UI_STATE,
 }

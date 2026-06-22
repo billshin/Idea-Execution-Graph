@@ -106,9 +106,21 @@ export function loadSnapshot(): GraphSnapshot {
 
     const ideaSpace = isObject(parsed.graph.ideaSpace)
       ? {
+          ...DEFAULT_SNAPSHOT.ideaSpace,
           title: typeof parsed.graph.ideaSpace.title === 'string' ? parsed.graph.ideaSpace.title : '',
           subtitle: typeof parsed.graph.ideaSpace.subtitle === 'string' ? parsed.graph.ideaSpace.subtitle : '',
           targetDate: typeof parsed.graph.ideaSpace.targetDate === 'string' ? parsed.graph.ideaSpace.targetDate : '',
+          category: typeof parsed.graph.ideaSpace.category === 'string' ? parsed.graph.ideaSpace.category : '',
+          author: typeof parsed.graph.ideaSpace.author === 'string' ? parsed.graph.ideaSpace.author : '',
+          readOnly: Boolean(parsed.graph.ideaSpace.readOnly),
+          password: isObject(parsed.graph.ideaSpace.password) &&
+            typeof parsed.graph.ideaSpace.password.salt === 'string' &&
+            typeof parsed.graph.ideaSpace.password.hash === 'string'
+            ? {
+                salt: parsed.graph.ideaSpace.password.salt,
+                hash: parsed.graph.ideaSpace.password.hash,
+              }
+            : null,
         }
       : DEFAULT_SNAPSHOT.ideaSpace
 

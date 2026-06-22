@@ -31,6 +31,7 @@ export function WorkspaceControls() {
   const [collapsed, setCollapsed] = useState(true)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const ui = useGraphStore((state) => state.ui)
+  const isReadOnly = useGraphStore((state) => state.accessMode === 'read-only')
   const nodes = useGraphStore((state) => state.nodes)
   const edges = useGraphStore((state) => state.edges)
   const parkingLot = useGraphStore((state) => state.parkingLot)
@@ -108,9 +109,21 @@ export function WorkspaceControls() {
         parkingLot: parsed.parkingLot as GraphSnapshot['parkingLot'],
         ideaSpace: isObject(parsed.ideaSpace)
           ? {
+              ...DEFAULT_SNAPSHOT.ideaSpace,
               title: typeof parsed.ideaSpace.title === 'string' ? parsed.ideaSpace.title : '',
               subtitle: typeof parsed.ideaSpace.subtitle === 'string' ? parsed.ideaSpace.subtitle : '',
               targetDate: typeof parsed.ideaSpace.targetDate === 'string' ? parsed.ideaSpace.targetDate : '',
+              category: typeof parsed.ideaSpace.category === 'string' ? parsed.ideaSpace.category : '',
+              author: typeof parsed.ideaSpace.author === 'string' ? parsed.ideaSpace.author : '',
+              readOnly: Boolean(parsed.ideaSpace.readOnly),
+              password: isObject(parsed.ideaSpace.password) &&
+                typeof parsed.ideaSpace.password.salt === 'string' &&
+                typeof parsed.ideaSpace.password.hash === 'string'
+                ? {
+                    salt: parsed.ideaSpace.password.salt,
+                    hash: parsed.ideaSpace.password.hash,
+                  }
+                : null,
             }
           : DEFAULT_SNAPSHOT.ideaSpace,
         ui: parsed.ui as unknown as GraphSnapshot['ui'],
@@ -149,19 +162,19 @@ export function WorkspaceControls() {
             <button type="button" onClick={() => toggleAllCollapsed(false)}>
               Expand All
             </button>
-            <button type="button" onClick={handleSave}>
+            <button type="button" onClick={handleSave} disabled={isReadOnly}>
               {actionStatus === 'saved' ? 'Saved' : 'Save'}
             </button>
-            <button type="button" onClick={handleLoad}>
+            <button type="button" onClick={handleLoad} disabled={isReadOnly}>
               {actionStatus === 'loaded' ? 'Loaded' : 'Load'}
             </button>
-            <button type="button" onClick={handleReset}>
+            <button type="button" onClick={handleReset} disabled={isReadOnly}>
               {actionStatus === 'reset' ? 'Reset' : 'Reset'}
             </button>
             <button type="button" onClick={handleExport}>
               Export JSON
             </button>
-            <button type="button" onClick={() => fileInputRef.current?.click()}>
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isReadOnly}>
               Import JSON
             </button>
             <input
@@ -172,6 +185,7 @@ export function WorkspaceControls() {
               style={{ display: 'none' }}
             />
           </div>
+          {isReadOnly ? <p className="empty-state">Read-only mode. Workspace mutations are disabled.</p> : null}
           <div className="view-mode-group">
             <p>View Mode</p>
             <label className="radio-label">
@@ -210,6 +224,7 @@ export function WorkspaceControls() {
             <input
               type="checkbox"
               checked={ui.editLock}
+              disabled={isReadOnly}
               onChange={(event) => setEditLock(event.target.checked)}
             />
             Edit Lock (inline edit off)
@@ -221,14 +236,13 @@ export function WorkspaceControls() {
               Direction
               <select
                 value={ui.addNodeDirection}
+                disabled={isReadOnly}
                 onChange={(event) =>
                   setAddNodeDirection(event.target.value as 'right' | 'left' | 'bottom' | 'top')
                 }
               >
                 <option value="right">right</option>
-                <option value="left">left</option>
                 <option value="bottom">bottom</option>
-                <option value="top">top</option>
               </select>
             </label>
           </div>
@@ -240,6 +254,7 @@ export function WorkspaceControls() {
                 <input
                   type="checkbox"
                   checked={ui.displayFields[option.key]}
+                  disabled={isReadOnly}
                   onChange={(event) => setDisplayField(option.key, event.target.checked)}
                 />
                 {option.label}

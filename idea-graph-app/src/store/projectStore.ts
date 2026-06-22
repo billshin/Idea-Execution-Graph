@@ -1,15 +1,16 @@
 import { create } from 'zustand'
 import { DEFAULT_SNAPSHOT } from '../constants/defaults'
 import { saveProjects, loadProjects } from '../persistence/projectStorage'
-import type { AppPage, GraphSnapshot, IdeaProject } from '../types/graph'
+import type { AppPage, CreateProjectInput, GraphSnapshot, IdeaProject, ProjectAccessMode } from '../types/graph'
 
 interface ProjectState {
   projects: IdeaProject[]
   currentProjectId: string | null
   currentPage: AppPage
+  accessModesByProjectId: Record<string, ProjectAccessMode>
   
   // Project management
-  createProject: (title: string, subtitle?: string) => string
+  createProject: (input: CreateProjectInput) => Promise<string>
   deleteProject: (projectId: string) => void
   updateProjectMetadata: (projectId: string, title: string, subtitle: string) => void
   
@@ -19,6 +20,9 @@ interface ProjectState {
   
   // Project data
   getCurrentProject: () => IdeaProject | null
+  getProjectAccessMode: (projectId: string) => ProjectAccessMode | null
+  setProjectAccessMode: (projectId: string, mode: ProjectAccessMode) => void
+  clearProjectAccessMode: (projectId: string) => void
   updateProjectSnapshot: (projectId: string, snapshot: GraphSnapshot) => void
   loadProjects: (projects: IdeaProject[]) => void
   initializeProjects: () => void
@@ -36,17 +40,24 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   projects: loadProjects(),
   currentProjectId: null,
   currentPage: 'list',
+  accessModesByProjectId: {},
 
-  createProject: (title, subtitle = '') => {
+  createProject: async ({ title, subtitle = '', category = '', author = '', readOnly = false }) => {
     const id = createId('project')
     const now = nowIso()
     const trimmedTitle = title.trim()
     const trimmedSubtitle = subtitle.trim()
+    const trimmedCategory = category.trim()
+    const trimmedAuthor = author.trim()
     const initialSnapshot = structuredClone(DEFAULT_SNAPSHOT)
+
     initialSnapshot.ideaSpace = {
       ...initialSnapshot.ideaSpace,
       title: trimmedTitle,
       subtitle: trimmedSubtitle,
+      category: trimmedCategory,
+      author: trimmedAuthor,
+      readOnly,
     }
     
     const newProject: IdeaProject = {
@@ -65,6 +76,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         projects: newProjects,
         currentProjectId: id,
         currentPage: 'editor',
+        accessModesByProjectId: {
+          ...state.accessModesByProjectId,
+          [id]: readOnly ? 'read-only' : 'edit',
+        },
       }
     })
 
@@ -79,6 +94,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         projects: newProjects,
         currentProjectId: state.currentProjectId === projectId ? null : state.currentProjectId,
         currentPage: state.currentProjectId === projectId ? 'list' : state.currentPage,
+        accessModesByProjectId: Object.fromEntries(
+          Object.entries(state.accessModesByProjectId).filter(([id]) => id !== projectId),
+        ),
       }
     })
   },
@@ -110,6 +128,25 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { projects, currentProjectId } = get()
     if (!currentProjectId) return null
     return projects.find((p) => p.id === currentProjectId) || null
+  },
+
+  getProjectAccessMode: (projectId) => get().accessModesByProjectId[projectId] ?? null,
+
+  setProjectAccessMode: (projectId, mode) => {
+    set((state) => ({
+      accessModesByProjectId: {
+        ...state.accessModesByProjectId,
+        [projectId]: mode,
+      },
+    }))
+  },
+
+  clearProjectAccessMode: (projectId) => {
+    set((state) => ({
+      accessModesByProjectId: Object.fromEntries(
+        Object.entries(state.accessModesByProjectId).filter(([id]) => id !== projectId),
+      ),
+    }))
   },
 
   updateProjectSnapshot: (projectId, snapshot) => {

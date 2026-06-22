@@ -6,6 +6,7 @@ import { useGraphStore } from '../../store/graphStore'
 
 export function TaskParkingLot() {
   const parkingLot = useGraphStore((state) => state.parkingLot)
+  const isReadOnly = useGraphStore((state) => state.accessMode === 'read-only')
   const addParkingItem = useGraphStore((state) => state.addParkingItem)
   const updateParkingItem = useGraphStore((state) => state.updateParkingItem)
 
@@ -14,6 +15,10 @@ export function TaskParkingLot() {
 
   // Ensure single note exists
   useEffect(() => {
+    if (isReadOnly) {
+      return
+    }
+
     if (parkingLot.length === 0) {
       addParkingItem(DEFAULT_IDEA_NOTE_CONTENT)
       return
@@ -23,7 +28,7 @@ export function TaskParkingLot() {
     if (firstNote && firstNote.content.trim().length === 0) {
       updateParkingItem(firstNote.id, DEFAULT_IDEA_NOTE_CONTENT)
     }
-  }, [addParkingItem, parkingLot, updateParkingItem])
+  }, [addParkingItem, parkingLot, updateParkingItem, isReadOnly])
 
   useEffect(() => {
     if (!editingNoteId) {
@@ -39,6 +44,10 @@ export function TaskParkingLot() {
 
   const commitEditingNote = () => {
     if (!editingNoteId) {
+      return
+    }
+
+    if (isReadOnly) {
       return
     }
 
@@ -58,6 +67,7 @@ export function TaskParkingLot() {
             <textarea
               className="idea-note-editor"
               autoFocus
+              disabled={isReadOnly}
               value={editingContent}
               onChange={(event) => setEditingContent(event.target.value)}
               onBlur={commitEditingNote}
@@ -68,11 +78,19 @@ export function TaskParkingLot() {
               tabIndex={0}
               className="idea-note-preview markdown-preview"
               onClick={() => {
+                if (isReadOnly) {
+                  return
+                }
+
                 setEditingNoteId(note.id)
                 setEditingContent(note.content)
               }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
+                  if (isReadOnly) {
+                    return
+                  }
+
                   event.preventDefault()
                   setEditingNoteId(note.id)
                   setEditingContent(note.content)
