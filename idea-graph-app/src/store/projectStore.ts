@@ -82,6 +82,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       readOnly,
     }
 
+    // Carry non-empty form fields into the first node's matching fields
+    if (initialSnapshot.nodes.length > 0) {
+      const firstNode = initialSnapshot.nodes[0]
+      initialSnapshot.nodes[0] = {
+        ...firstNode,
+        data: {
+          ...firstNode.data,
+          ...(trimmedTitle ? { title: trimmedTitle } : {}),
+          ...(trimmedSubtitle ? { subtitle: trimmedSubtitle } : {}),
+        },
+      }
+    }
+
     const mode = get().dataSourceMode
 
     if (mode === 'api') {

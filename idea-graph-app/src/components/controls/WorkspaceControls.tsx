@@ -39,6 +39,7 @@ export function WorkspaceControls() {
   const loadStoreSnapshot = useGraphStore((state) => state.loadSnapshot)
   const setMode = useGraphStore((state) => state.setMode)
   const setEditLock = useGraphStore((state) => state.setEditLock)
+  const setShowIdeaSpace = useGraphStore((state) => state.setShowIdeaSpace)
   const setAddNodeDirection = useGraphStore((state) => state.setAddNodeDirection)
   const setDisplayField = useGraphStore((state) => state.setDisplayField)
   const toggleAllCollapsed = useGraphStore((state) => state.toggleAllCollapsed)
@@ -228,6 +229,15 @@ export function WorkspaceControls() {
               onChange={(event) => setEditLock(event.target.checked)}
             />
             Edit Lock (inline edit off)
+          </label>
+
+          <label className="checkbox-inline-label">
+            <input
+              type="checkbox"
+              checked={ui.showIdeaSpace}
+              onChange={(event) => setShowIdeaSpace(event.target.checked)}
+            />
+            Show Idea
           </label>
 
           <div className="view-mode-group">

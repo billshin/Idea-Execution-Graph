@@ -14,6 +14,7 @@ export function NodeEditModal() {
   const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
   const [labelsInput, setLabelsInput] = useState('')
+  const [isEditingMarkdown, setIsEditingMarkdown] = useState(false)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -244,23 +245,36 @@ export function NodeEditModal() {
 
           {/* Middle Column */}
           <div className="modal-middle-column">
-            <label>
-              Markdown Content
+            <div className="markdown-content-header">
+              <label>
+                Markdown Content
+              </label>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  className="markdown-edit-btn"
+                  onClick={() => setIsEditingMarkdown(!isEditingMarkdown)}
+                  title={isEditingMarkdown ? 'Preview mode' : 'Edit mode'}
+                >
+                  {isEditingMarkdown ? '👁️' : '✏️'}
+                </button>
+              )}
+            </div>
+            {isEditingMarkdown && !isReadOnly ? (
               <textarea
                 value={node.data.content}
-                disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { content: event.target.value })}
+                className="modal-markdown-editor"
               />
-            </label>
+            ) : (
+              <div className="modal-markdown-preview">
+                <p>Preview</p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.data.content || '_Empty_'}</ReactMarkdown>
+              </div>
+            )}
           </div>
 
-          {/* Right Column */}
-          <div className="modal-right-column">
-            <div className="markdown-preview">
-              <p>Preview</p>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.data.content || '_Empty_'}</ReactMarkdown>
-            </div>
-          </div>
+         
         </div>
       </section>
     </div>

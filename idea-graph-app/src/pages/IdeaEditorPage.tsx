@@ -384,43 +384,81 @@ export default function IdeaEditorPage() {
         >
           {isLeftPanelCollapsed ? '📘 展開側欄' : '📖 收合側欄'}
         </button>
-        <div className="collapsed-idea-space">
-          <p className="collapsed-idea-space-title">{ideaSpace.title || '新想法'}</p>
-          <p className="collapsed-idea-space-subtitle">{ideaSpace.subtitle || '為了什麼目的'}</p>
-        </div>
+        {ui.showIdeaSpace && (
+          <div className="collapsed-idea-space">
+            <p className="collapsed-idea-space-title">{ideaSpace.title || '新想法'}</p>
+            <p className="collapsed-idea-space-subtitle">{ideaSpace.subtitle || '為了什麼目的'}</p>
+          </div>
+        )}
         {selectedEdge ? (
           <div className="edge-style-panel" onClick={(event) => event.stopPropagation()}>
             <p>Edge Style</p>
-            <label>
-              Line
-              <select
-                value={selectedEdge.data?.lineStyle ?? 'solid'}
-                disabled={accessMode === 'read-only'}
-                onChange={(event) =>
-                  updateEdgeStyle(selectedEdge.id, {
-                    lineStyle: event.target.value as 'solid' | 'dashed',
-                  })
-                }
-              >
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-              </select>
-            </label>
-            <label>
-              Arrow
-              <select
-                value={selectedEdge.data?.arrowStyle ?? 'none'}
-                disabled={accessMode === 'read-only'}
-                onChange={(event) =>
-                  updateEdgeStyle(selectedEdge.id, {
-                    arrowStyle: event.target.value as 'none' | 'arrow',
-                  })
-                }
-              >
-                <option value="none">None</option>
-                <option value="arrow">Arrow</option>
-              </select>
-            </label>
+            <div className="edge-style-group">
+              <span>Line</span>
+              <div className="edge-style-radios">
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-line-style"
+                    checked={(selectedEdge.data?.lineStyle ?? 'solid') === 'solid'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        lineStyle: 'solid',
+                      })
+                    }
+                  />
+                  Solid
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-line-style"
+                    checked={selectedEdge.data?.lineStyle === 'dashed'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        lineStyle: 'dashed',
+                      })
+                    }
+                  />
+                  Dashed
+                </label>
+              </div>
+            </div>
+            <div className="edge-style-group">
+              <span>Arrow</span>
+              <div className="edge-style-radios">
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-arrow-style"
+                    checked={(selectedEdge.data?.arrowStyle ?? 'none') === 'none'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        arrowStyle: 'none',
+                      })
+                    }
+                  />
+                  None
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-arrow-style"
+                    checked={selectedEdge.data?.arrowStyle === 'arrow'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        arrowStyle: 'arrow',
+                      })
+                    }
+                  />
+                  Arrow
+                </label>
+              </div>
+            </div>
           </div>
         ) : null}
         <ReactFlow

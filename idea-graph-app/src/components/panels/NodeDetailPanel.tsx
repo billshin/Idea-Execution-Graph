@@ -12,6 +12,7 @@ export function NodeDetailPanel() {
   const [taskTitle, setTaskTitle] = useState('')
   const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
+  const [isEditingMarkdown, setIsEditingMarkdown] = useState(false)
 
   const labels = useMemo(() => (node?.data.labels ?? []).join(', '), [node?.data.labels])
 
@@ -222,20 +223,34 @@ export function NodeDetailPanel() {
 
         {/* Right Column: Markdown Editor */}
         <div className="detail-right-column">
-          <label>
-            Markdown Content
+          <div className="markdown-content-header">
+            <label>
+              Markdown Content
+            </label>
+            {!isReadOnly && (
+              <button
+                type="button"
+                className="markdown-edit-btn"
+                onClick={() => setIsEditingMarkdown(!isEditingMarkdown)}
+                title={isEditingMarkdown ? 'Preview mode' : 'Edit mode'}
+              >
+                {isEditingMarkdown ? '👁️' : '✏️'}
+              </button>
+            )}
+          </div>
+
+          {isEditingMarkdown && !isReadOnly ? (
             <textarea
               value={node.data.content}
-              disabled={isReadOnly}
               onChange={(event) => updateNode(node.id, { content: event.target.value })}
               className="markdown-editor"
             />
-          </label>
-
-          <div className="markdown-preview">
-            <p>Preview</p>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.data.content || '_Empty_'}</ReactMarkdown>
-          </div>
+          ) : (
+            <div className="markdown-preview">
+              <p>Preview</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.data.content || '_Empty_'}</ReactMarkdown>
+            </div>
+          )}
         </div>
       </div>
     </section>

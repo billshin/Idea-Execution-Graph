@@ -57,6 +57,7 @@ interface GraphState {
   setFocusMode: (enabled: boolean) => void
   setFinishMode: (enabled: boolean) => void
   setEditLock: (enabled: boolean) => void
+  setShowIdeaSpace: (enabled: boolean) => void
   setAddNodeDirection: (direction: WorkspaceUiState['addNodeDirection']) => void
   setDisplayField: (field: keyof WorkspaceUiState['displayFields'], value: boolean) => void
   addParkingItem: (content: string) => void
@@ -548,6 +549,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       ui: {
         ...state.ui,
         editLock: enabled,
+      },
+    }))
+  },
+
+  setShowIdeaSpace: (enabled) => {
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        showIdeaSpace: enabled,
       },
     }))
   },

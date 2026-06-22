@@ -88,6 +88,7 @@ export interface WorkspaceUiState {
   focusMode: boolean
   finishMode: boolean
   editLock: boolean
+  showIdeaSpace: boolean
   addNodeDirection: 'right' | 'left' | 'bottom' | 'top'
   displayFields: Record<DisplayField, boolean>
   mode: 'default' | 'focus' | 'finish'

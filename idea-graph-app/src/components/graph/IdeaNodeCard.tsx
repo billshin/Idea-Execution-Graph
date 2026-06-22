@@ -50,6 +50,8 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const openNodeEditor = useGraphStore((state) => state.openNodeEditor)
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
   const updateNode = useGraphStore((state) => state.updateNode)
+  const addNodeDirection = useGraphStore((state) => state.ui.addNodeDirection)
+  const setAddNodeDirection = useGraphStore((state) => state.setAddNodeDirection)
   const [editingField, setEditingField] = useState<'title' | 'subtitle' | 'conclusion' | null>(null)
   const [trayOpen, setTrayOpen] = useState(false)
   const isReadOnly = accessMode === 'read-only'
@@ -275,6 +277,16 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             <option value="finish">Finish</option>
             <option value="fail">Fail</option>
             <option value="cancel">Cancel</option>
+          </select>
+
+          <select
+            className="node-status-select"
+            value={addNodeDirection}
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => setAddNodeDirection(event.target.value as 'right' | 'bottom')}
+          >
+            <option value="right"> right</option>
+            <option value="bottom"> bottom</option>
           </select>
         </div>
       ) : null}
