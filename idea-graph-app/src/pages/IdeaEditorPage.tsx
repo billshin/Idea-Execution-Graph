@@ -295,8 +295,9 @@ export default function IdeaEditorPage() {
         }
 
         const descendants = getDescendants(node.id, edges)
-        let hiddenTaskCount = 0
-        let hiddenDoneTaskCount = 0
+        const ownTasks = node.data.tasks ?? []
+        let hiddenTaskCount = ownTasks.length
+        let hiddenDoneTaskCount = ownTasks.filter((task) => task.done).length
 
         for (const descendantId of descendants) {
           const descendant = nodes.find((entry) => entry.id === descendantId)

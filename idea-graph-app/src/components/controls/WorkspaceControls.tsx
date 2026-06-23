@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { DEFAULT_SNAPSHOT } from '../../constants/defaults'
-import { loadSnapshot, saveSnapshot } from '../../persistence/storage'
+import { saveSnapshot } from '../../persistence/storage'
 import { useGraphStore } from '../../store/graphStore'
 import type { DisplayField, GraphSnapshot } from '../../types/graph'
 
@@ -40,9 +40,8 @@ export function WorkspaceControls() {
   const setMode = useGraphStore((state) => state.setMode)
   const setEditLock = useGraphStore((state) => state.setEditLock)
   const setShowIdeaSpace = useGraphStore((state) => state.setShowIdeaSpace)
-  const setAddNodeDirection = useGraphStore((state) => state.setAddNodeDirection)
+  const setTaskShowLimit = useGraphStore((state) => state.setTaskShowLimit)
   const setDisplayField = useGraphStore((state) => state.setDisplayField)
-  const toggleAllCollapsed = useGraphStore((state) => state.toggleAllCollapsed)
 
   useEffect(() => {
     if (actionStatus === 'idle') {
@@ -52,16 +51,6 @@ export function WorkspaceControls() {
     const timer = window.setTimeout(() => setActionStatus('idle'), 1500)
     return () => window.clearTimeout(timer)
   }, [actionStatus])
-
-  const handleSave = () => {
-    saveSnapshot({ nodes, edges, parkingLot, ideaSpace, ui })
-    setActionStatus('saved')
-  }
-
-  const handleLoad = () => {
-    loadStoreSnapshot(loadSnapshot())
-    setActionStatus('loaded')
-  }
 
   const handleReset = () => {
     const confirmed = window.confirm('要將工作區重設為預設狀態嗎？此操作會覆寫目前的本機儲存快照。')
@@ -157,7 +146,7 @@ export function WorkspaceControls() {
       {!collapsed && (
         <>
           <div className="button-row">
-            <button type="button" onClick={() => toggleAllCollapsed(true)}>
+            {/* <button type="button" onClick={() => toggleAllCollapsed(true)}>
               Collapse All
             </button>
             <button type="button" onClick={() => toggleAllCollapsed(false)}>
@@ -168,7 +157,7 @@ export function WorkspaceControls() {
             </button>
             <button type="button" onClick={handleLoad} disabled={isReadOnly}>
               {actionStatus === 'loaded' ? 'Loaded' : 'Load'}
-            </button>
+            </button> */}
             <button type="button" onClick={handleReset} disabled={isReadOnly}>
               {actionStatus === 'reset' ? 'Reset' : 'Reset'}
             </button>
@@ -241,21 +230,24 @@ export function WorkspaceControls() {
           </label>
 
           <div className="view-mode-group">
-            <p>Add Node Default Direction</p>
+            <p>Task Show Limit（0 = 全部）</p>
             <label>
-              Direction
-              <select
-                value={ui.addNodeDirection}
+              {/* Limit */}
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={ui.taskShowLimit}
                 disabled={isReadOnly}
-                onChange={(event) =>
-                  setAddNodeDirection(event.target.value as 'right' | 'left' | 'bottom' | 'top')
-                }
-              >
-                <option value="right">right</option>
-                <option value="bottom">bottom</option>
-              </select>
+                onChange={(event) => {
+                  const next = Number(event.target.value)
+                  setTaskShowLimit(Number.isFinite(next) ? next : 0)
+                }}
+              />
             </label>
           </div>
+
+       
 
           <div className="display-options">
             <p>Custom Display</p>

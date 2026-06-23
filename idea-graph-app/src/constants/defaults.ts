@@ -12,6 +12,7 @@ export const DEFAULT_UI_STATE: WorkspaceUiState = {
   finishMode: false,
   editLock: false,
   showIdeaSpace: true,
+  taskShowLimit: 0,
   addNodeDirection: 'right',
   displayFields: DEFAULT_DISPLAY_FIELDS,
   mode: 'default',

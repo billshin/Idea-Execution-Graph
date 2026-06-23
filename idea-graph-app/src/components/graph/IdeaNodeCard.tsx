@@ -51,6 +51,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode)
   const updateNode = useGraphStore((state) => state.updateNode)
   const addNodeDirection = useGraphStore((state) => state.ui.addNodeDirection)
+  const taskShowLimit = useGraphStore((state) => state.ui.taskShowLimit)
   const setAddNodeDirection = useGraphStore((state) => state.setAddNodeDirection)
   const [editingField, setEditingField] = useState<'title' | 'subtitle' | 'conclusion' | null>(null)
   const [trayOpen, setTrayOpen] = useState(false)
@@ -67,6 +68,13 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
     updateNode(id, { [field]: value } as Partial<IdeaNodeData>)
     setEditingField((current) => (current === field ? null : current))
   }
+
+  const visibleTasks = taskShowLimit > 0 ? data.tasks.slice(0, taskShowLimit) : data.tasks
+  const taskTotalCount = data.collapsed ? (data.hiddenTaskCount ?? 0) : data.tasks.length
+  const taskDoneCount = data.collapsed
+    ? (data.hiddenDoneTaskCount ?? 0)
+    : data.tasks.filter((task) => task.done).length
+  const taskLimitText = taskShowLimit > 0 && taskTotalCount > taskShowLimit ? `  - Limit ${taskShowLimit}` : ''
 
   return (
     <article
@@ -100,7 +108,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="collapse-btn"
-            title={data.collapsed ? 'Expand' : 'Collapse'}
+            title={data.collapsed ? '展開節點' : '收合節點'}
             onClick={(event) => {
               event.stopPropagation()
               if (!isReadOnly) {
@@ -114,6 +122,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="gear-btn"
+            title={trayOpen ? '關閉節點工具列' : '開啟節點工具列'}
             onClick={(event) => {
               event.stopPropagation()
               if (!isReadOnly) {
@@ -127,7 +136,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="add-node-inline"
-            title={data.collapsed ? 'Collapsed node' : 'Add connected node'}
+            title={data.collapsed ? '節點已收合，無法新增' : '新增連接節點'}
             onClick={(event) => {
               event.stopPropagation()
               if (!isReadOnly && !data.collapsed) {
@@ -153,6 +162,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display"
+            title={isReadOnly || editLock ? '目前不可編輯標題' : '點擊編輯標題'}
             style={{ fontWeight: 'bold' }}
             onClick={(event) => {
               event.stopPropagation()
@@ -179,6 +189,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display subtitle-display"
+            title={isReadOnly || editLock ? '目前不可編輯副標題' : '點擊編輯副標題'}
             onClick={(event) => {
               event.stopPropagation()
               if (!editLock && !isReadOnly) {
@@ -204,6 +215,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="inline-display conclusion-display"
+            title={isReadOnly || editLock ? '目前不可編輯結論' : '點擊編輯結論'}
             onClick={(event) => {
               event.stopPropagation()
               if (!editLock && !isReadOnly) {
@@ -219,7 +231,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
       {displayFields.targetDate && data.targetDate ? <small>Target: {data.targetDate}</small> : null}
       {displayFields.taskList && data.tasks.length > 0 ? (
         <ul className="task-mini-list">
-          {data.tasks.slice(0, 3).map((task) => {
+          {visibleTasks.map((task) => {
             const category = task.category.trim()
             const title = task.title.trim()
             const conclusion = task.conclusion.trim()
@@ -238,8 +250,11 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
         </ul>
       ) : null}
 
-      {data.collapsed ? (
-        <p className="task-count">Tasks: {(data.hiddenDoneTaskCount ?? 0)}/{data.hiddenTaskCount}</p>
+      {(data.collapsed || taskTotalCount > 0) ? (
+        <p className="task-count">
+          Tasks: {taskDoneCount}/{taskTotalCount}
+          {taskLimitText ? <span className="task-limit-text">{taskLimitText}</span> : null}
+        </p>
       ) : null}
 
       {trayOpen ? (
@@ -268,6 +283,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
             className="node-status-select"
             value={data.status}
             disabled={isReadOnly}
+            title="節點狀態"
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => updateNode(id, { status: event.target.value as IdeaNodeData['status'] })}
           >
@@ -283,6 +299,7 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <select
             className="node-status-select"
             value={addNodeDirection}
+            title="新增節點方向"
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => setAddNodeDirection(event.target.value as 'right' | 'bottom')}
           >

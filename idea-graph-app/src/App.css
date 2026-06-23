@@ -507,6 +507,10 @@ textarea {
   font-weight: 600;
 }
 
+.task-limit-text {
+  color: #6b7280;
+}
+
 .node-actions {
   display: flex;
   gap: 6px;

@@ -58,6 +58,7 @@ interface GraphState {
   setFinishMode: (enabled: boolean) => void
   setEditLock: (enabled: boolean) => void
   setShowIdeaSpace: (enabled: boolean) => void
+  setTaskShowLimit: (limit: number) => void
   setAddNodeDirection: (direction: WorkspaceUiState['addNodeDirection']) => void
   setDisplayField: (field: keyof WorkspaceUiState['displayFields'], value: boolean) => void
   addParkingItem: (content: string) => void
@@ -587,6 +588,16 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }))
   },
 
+  setTaskShowLimit: (limit) => {
+    const normalizedLimit = Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 0
+    set((state) => ({
+      ui: {
+        ...state.ui,
+        taskShowLimit: normalizedLimit,
+      },
+    }))
+  },
+
   setAddNodeDirection: (direction) => {
     set((state) => ({
       ui: {
@@ -677,13 +688,26 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   loadSnapshot: (snapshot) => {
+    const snapshotUi = snapshot.ui ?? DEFAULT_UI_STATE
+    const normalizedTaskShowLimit = Number.isFinite(snapshotUi.taskShowLimit)
+      ? Math.max(0, Math.floor(snapshotUi.taskShowLimit))
+      : DEFAULT_UI_STATE.taskShowLimit
+
     set({
       nodes: snapshot.nodes,
       edges: snapshot.edges.map((edge) => normalizeEdge(edge)),
       parkingLot: snapshot.parkingLot,
       ideaSpace: snapshot.ideaSpace,
       accessMode: 'edit',
-      ui: snapshot.ui,
+      ui: {
+        ...DEFAULT_UI_STATE,
+        ...snapshotUi,
+        displayFields: {
+          ...DEFAULT_UI_STATE.displayFields,
+          ...(snapshotUi.displayFields ?? {}),
+        },
+        taskShowLimit: normalizedTaskShowLimit,
+      },
       selectedNodeId: snapshot.nodes[0]?.id,
       selectedEdgeId: undefined,
       editingNodeId: undefined,
