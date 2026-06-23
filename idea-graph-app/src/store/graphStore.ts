@@ -445,14 +445,30 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   removeNode: (nodeId) => {
-    set((state) => (isReadOnlyMode(state) ? state : {
-      undoStack: pushUndoStack(state),
-      nodes: state.nodes.filter((node) => node.id !== nodeId),
-      edges: state.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
-      selectedNodeId: state.selectedNodeId === nodeId ? undefined : state.selectedNodeId,
-      selectedEdgeId: undefined,
-      editingNodeId: state.editingNodeId === nodeId ? undefined : state.editingNodeId,
-    }))
+    set((state) => {
+      if (isReadOnlyMode(state)) {
+        return state
+      }
+
+      const targetExists = state.nodes.some((node) => node.id === nodeId)
+      if (!targetExists) {
+        return state
+      }
+
+      if (state.nodes.length <= 1) {
+        window.alert('至少需保留一個節點，無法刪除最後一個節點。')
+        return state
+      }
+
+      return {
+        undoStack: pushUndoStack(state),
+        nodes: state.nodes.filter((node) => node.id !== nodeId),
+        edges: state.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+        selectedNodeId: state.selectedNodeId === nodeId ? undefined : state.selectedNodeId,
+        selectedEdgeId: undefined,
+        editingNodeId: state.editingNodeId === nodeId ? undefined : state.editingNodeId,
+      }
+    })
   },
 
   removeSelectedNode: () => {

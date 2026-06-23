@@ -1,8 +1,14 @@
 # Idea Execution Graph
 
-一個用來整理與追蹤想法執行流程的前端應用。
+用來整理與追蹤想法執行流程。
+簡單說就是:心智圖 + 任務task + 狀態status
+
+Demo Page:
+資料存於LocalStorage，無法跨裝置、無法備份、無法多人協作。後端開發中...
+https://billshin.github.io/Idea-Execution-Graph/
 
 ![alt text](image/image.png)
+
 ## 功能簡介
 
 - Idea 清單首頁（建立、刪除、進入編輯）
@@ -12,9 +18,6 @@
 - 本機儲存（localStorage，自動保存）
 - JSON 匯入 / 匯出
 
-## 專案位置
-
-前端主程式在 [idea-graph-app](idea-graph-app)。
 
 ## 快速開始
 
