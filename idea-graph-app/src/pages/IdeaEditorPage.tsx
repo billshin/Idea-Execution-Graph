@@ -171,7 +171,7 @@ export default function IdeaEditorPage() {
       let resolvedMode = resolveDefaultProjectAccessMode(currentProject)
 
       if (hasProtectedPassword(currentProject)) {
-        const input = window.prompt('此專案已設定 Password。\n輸入密碼進入編輯模式，取消則以訪客查看。')
+        const input = window.prompt('此專案已設定密碼。\n輸入密碼可進入編輯模式，取消則以訪客唯讀模式開啟。')
 
         if (input) {
           const passwordMode = await resolveProjectAccessModeFromPassword(currentProject, input)
@@ -229,6 +229,12 @@ export default function IdeaEditorPage() {
       const target = event.target as HTMLElement | null
       const isEditingInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable
 
+      if (event.key === 'Escape') {
+        setSelectedNode(undefined)
+        setSelectedEdge(undefined)
+        return
+      }
+
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !isEditingInput) {
         event.preventDefault()
         undo()
@@ -246,7 +252,7 @@ export default function IdeaEditorPage() {
 
     window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
-  }, [removeSelectedEdge, removeSelectedNode, undo, accessMode])
+  }, [removeSelectedEdge, removeSelectedNode, setSelectedEdge, setSelectedNode, undo, accessMode])
 
   const renderedNodes = useMemo(() => {
     const visibleIds = new Set<string>(nodes.map((node) => node.id))
@@ -317,27 +323,34 @@ export default function IdeaEditorPage() {
     return edges
       .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
       .map((edge) => {
+        const isSelected = edge.id === selectedEdgeId
         const targetNode = nodeById.get(edge.target)
-        const color = targetNode
+        const baseColor = targetNode
           ? targetNode.data.status === 'open'
             ? '#94a3b8'
             : STATUS_COLOR_MAP[targetNode.data.status]
           : '#94a3b8'
+        const strokeColor = baseColor
         const lineStyle = edge.data?.lineStyle ?? 'solid'
         const arrowStyle = edge.data?.arrowStyle ?? 'none'
+        const resolvedArrowStyle = arrowStyle === 'arrow' ? 'forward' : arrowStyle
 
         return {
           ...edge,
+          animated: isSelected,
+          zIndex: isSelected ? 20 : 1,
           style: {
             ...(edge.style ?? {}),
-            stroke: color,
-            strokeWidth: 2,
+            stroke: strokeColor,
+            strokeWidth: isSelected ? 4 : 2,
             strokeDasharray: lineStyle === 'dashed' ? '8 6' : undefined,
+            filter: isSelected ? 'drop-shadow(0 0 4px rgba(15, 23, 42, 0.35))' : undefined,
           },
-          markerEnd: arrowStyle === 'arrow' ? { type: MarkerType.ArrowClosed, color } : undefined,
+          markerStart: resolvedArrowStyle === 'reverse' || resolvedArrowStyle === 'both' ? { type: MarkerType.ArrowClosed, color: strokeColor } : undefined,
+          markerEnd: resolvedArrowStyle === 'forward' || resolvedArrowStyle === 'both' ? { type: MarkerType.ArrowClosed, color: strokeColor } : undefined,
         }
       })
-  }, [edges, nodes, renderedNodes])
+  }, [edges, nodes, renderedNodes, selectedEdgeId])
 
   const selectedEdge = useMemo(
     () => (selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined),
@@ -447,15 +460,43 @@ export default function IdeaEditorPage() {
                   <input
                     type="radio"
                     name="edge-arrow-style"
-                    checked={selectedEdge.data?.arrowStyle === 'arrow'}
+                    checked={(selectedEdge.data?.arrowStyle ?? 'none') === 'forward' || selectedEdge.data?.arrowStyle === 'arrow'}
                     disabled={accessMode === 'read-only'}
                     onChange={() =>
                       updateEdgeStyle(selectedEdge.id, {
-                        arrowStyle: 'arrow',
+                        arrowStyle: 'forward',
                       })
                     }
                   />
-                  Arrow
+                  Forward
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-arrow-style"
+                    checked={selectedEdge.data?.arrowStyle === 'reverse'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        arrowStyle: 'reverse',
+                      })
+                    }
+                  />
+                  Reverse
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="edge-arrow-style"
+                    checked={selectedEdge.data?.arrowStyle === 'both'}
+                    disabled={accessMode === 'read-only'}
+                    onChange={() =>
+                      updateEdgeStyle(selectedEdge.id, {
+                        arrowStyle: 'both',
+                      })
+                    }
+                  />
+                  Both
                 </label>
               </div>
             </div>
@@ -472,11 +513,18 @@ export default function IdeaEditorPage() {
           nodesConnectable={accessMode !== 'read-only'}
           fitView
           onPaneClick={(event: ReactMouseEvent) => {
+            if (event.target !== event.currentTarget) {
+              return
+            }
+
+            // Clicking empty canvas should clear current selections.
+            setSelectedNode(undefined)
+
             if (accessMode === 'read-only') {
               return
             }
 
-            if (event.detail < 2 || event.target !== event.currentTarget) {
+            if (event.detail < 2) {
               return
             }
 

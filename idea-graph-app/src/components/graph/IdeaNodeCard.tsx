@@ -127,15 +127,16 @@ export function IdeaNodeCard({ id, data, selected }: NodeProps<IdeaNodeData>) {
           <button
             type="button"
             className="add-node-inline"
+            title={data.collapsed ? 'Collapsed node' : 'Add connected node'}
             onClick={(event) => {
               event.stopPropagation()
-              if (!isReadOnly) {
+              if (!isReadOnly && !data.collapsed) {
                 addConnectedNode(id)
               }
             }}
-            disabled={isReadOnly}
+            disabled={isReadOnly || data.collapsed}
           >
-            ➕
+            {data.collapsed ? '⛔' : '➕'}
           </button>
         </div>
       </header>

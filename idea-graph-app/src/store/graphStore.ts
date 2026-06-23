@@ -84,6 +84,13 @@ const DEFAULT_EDGE_DATA: IdeaEdgeData = {
   arrowStyle: 'none',
 }
 
+function normalizeArrowStyle(style: IdeaEdgeData['arrowStyle'] | undefined): IdeaEdgeData['arrowStyle'] {
+  if (style === 'arrow') {
+    return 'forward'
+  }
+  return style ?? 'none'
+}
+
 function normalizeEdge(edge: IdeaEdge): IdeaEdge {
   return {
     ...edge,
@@ -92,6 +99,7 @@ function normalizeEdge(edge: IdeaEdge): IdeaEdge {
     data: {
       ...DEFAULT_EDGE_DATA,
       ...(edge.data ?? {}),
+      arrowStyle: normalizeArrowStyle(edge.data?.arrowStyle),
     },
   }
 }
@@ -396,7 +404,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const arrowStyle = patch.arrowStyle
 
     const validLineStyle = !lineStyle || lineStyle === 'solid' || lineStyle === 'dashed'
-    const validArrowStyle = !arrowStyle || arrowStyle === 'none' || arrowStyle === 'arrow'
+    const validArrowStyle = !arrowStyle || arrowStyle === 'none' || arrowStyle === 'forward' || arrowStyle === 'reverse' || arrowStyle === 'both' || arrowStyle === 'arrow'
     if (!validLineStyle || !validArrowStyle) {
       return
     }
@@ -411,6 +419,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
                 ...DEFAULT_EDGE_DATA,
                 ...(edge.data ?? {}),
                 ...patch,
+                arrowStyle: normalizeArrowStyle(patch.arrowStyle ?? edge.data?.arrowStyle),
               },
             }
           : edge,

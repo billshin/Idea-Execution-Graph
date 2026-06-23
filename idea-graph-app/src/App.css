@@ -164,9 +164,9 @@
 
 .edge-style-radios {
   display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
 }
 
 .edge-style-radios label {
@@ -518,7 +518,7 @@ textarea {
 
 .node-status-select {
   max-width: 92px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .inline-title,

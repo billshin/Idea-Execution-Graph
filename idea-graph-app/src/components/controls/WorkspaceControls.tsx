@@ -64,7 +64,7 @@ export function WorkspaceControls() {
   }
 
   const handleReset = () => {
-    const confirmed = window.confirm('Reset workspace to default state? This will overwrite the current local storage snapshot.')
+    const confirmed = window.confirm('要將工作區重設為預設狀態嗎？此操作會覆寫目前的本機儲存快照。')
     if (!confirmed) {
       return
     }
@@ -100,7 +100,7 @@ export function WorkspaceControls() {
       const parsed = JSON.parse(raw) as unknown
 
       if (!isObject(parsed) || !Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges) || !Array.isArray(parsed.parkingLot) || !isObject(parsed.ui)) {
-        window.alert('Invalid JSON format. Please import a valid workspace snapshot file.')
+        window.alert('JSON 格式無效，請匯入正確的工作區快照檔案。')
         return
       }
 
@@ -134,7 +134,7 @@ export function WorkspaceControls() {
       saveSnapshot(nextSnapshot)
       setActionStatus('loaded')
     } catch {
-      window.alert('Failed to import JSON. Please check file content and try again.')
+      window.alert('匯入 JSON 失敗，請檢查檔案內容後再試一次。')
     } finally {
       event.target.value = ''
     }

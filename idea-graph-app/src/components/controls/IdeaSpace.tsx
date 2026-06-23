@@ -37,7 +37,7 @@ export function IdeaSpace() {
             type="button"
             className="edit-button"
             onClick={() => setShowHelp((current) => !current)}
-            aria-label={showHelp ? 'Hide access help' : 'Show access help'}
+            aria-label={showHelp ? '隱藏存取說明' : '顯示存取說明'}
           >
             ?
           </button>
@@ -55,11 +55,11 @@ export function IdeaSpace() {
 
       {showHelp ? (
         <div className="idea-space-help markdown-preview">
-          <p>Mode behavior</p>
+          <p>模式說明</p>
           <ul>
-            <li>No password + Read Only enabled: open in read-only mode.</li>
-            <li>No password + Read Only disabled: open in edit mode.</li>
-            <li>Password configured: matching password opens edit mode.</li>
+            <li>未設定密碼 + 開啟唯讀：以唯讀模式開啟。</li>
+            <li>未設定密碼 + 關閉唯讀：以編輯模式開啟。</li>
+            <li>已設定密碼：輸入正確密碼可進入編輯模式。</li>
           </ul>
         </div>
       ) : null}

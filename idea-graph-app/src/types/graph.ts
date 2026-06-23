@@ -74,7 +74,7 @@ export interface IdeaNodeData {
 }
 
 export type EdgeLineStyle = 'solid' | 'dashed'
-export type EdgeArrowStyle = 'none' | 'arrow'
+export type EdgeArrowStyle = 'none' | 'forward' | 'reverse' | 'both' | 'arrow'
 
 export interface IdeaEdgeData {
   lineStyle: EdgeLineStyle
