@@ -202,7 +202,7 @@ export default function IdeaEditorPage() {
     return () => {
       cancelled = true
     }
-  }, [projectId, navigate, loadGraphSnapshot, setAccessMode])
+  }, [projectId, currentProject, navigate, loadGraphSnapshot, setAccessMode])
 
   useEffect(() => {
     if (!hasHydrated) {

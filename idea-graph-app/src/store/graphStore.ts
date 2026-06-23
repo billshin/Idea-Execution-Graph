@@ -693,12 +693,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       ? Math.max(0, Math.floor(snapshotUi.taskShowLimit))
       : DEFAULT_UI_STATE.taskShowLimit
 
-    set({
+    set((state) => ({
       nodes: snapshot.nodes,
       edges: snapshot.edges.map((edge) => normalizeEdge(edge)),
       parkingLot: snapshot.parkingLot,
       ideaSpace: snapshot.ideaSpace,
-      accessMode: 'edit',
+      accessMode: state.accessMode,
       ui: {
         ...DEFAULT_UI_STATE,
         ...snapshotUi,
@@ -712,7 +712,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedEdgeId: undefined,
       editingNodeId: undefined,
       undoStack: [],
-    })
+    }))
   },
 }))
 

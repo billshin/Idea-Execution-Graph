@@ -13,6 +13,8 @@ export function NodeDetailPanel() {
   const [taskCategory, setTaskCategory] = useState('')
   const [taskConclusion, setTaskConclusion] = useState('')
   const [isEditingMarkdown, setIsEditingMarkdown] = useState(false)
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
 
   const labels = useMemo(() => (node?.data.labels ?? []).join(', '), [node?.data.labels])
 
@@ -64,6 +66,25 @@ export function NodeDetailPanel() {
     updateNode(node.id, {
       tasks: node.data.tasks.filter((task) => task.id !== taskId),
     })
+  }
+
+  const reorderTask = (fromTaskId: string, toTaskId: string) => {
+    if (fromTaskId === toTaskId) {
+      return
+    }
+
+    const fromIndex = node.data.tasks.findIndex((task) => task.id === fromTaskId)
+    const toIndex = node.data.tasks.findIndex((task) => task.id === toTaskId)
+
+    if (fromIndex < 0 || toIndex < 0) {
+      return
+    }
+
+    const nextTasks = [...node.data.tasks]
+    const [movedTask] = nextTasks.splice(fromIndex, 1)
+    nextTasks.splice(toIndex, 0, movedTask)
+
+    updateNode(node.id, { tasks: nextTasks })
   }
 
   return (
@@ -150,7 +171,51 @@ export function NodeDetailPanel() {
             <p>Tasks</p>
             <div className="task-list-container">
               {node.data.tasks.map((task) => (
-                <div key={task.id} className="task-row">
+                <div
+                  key={task.id}
+                  className={`task-row${dragOverTaskId === task.id ? ' task-row--drag-over' : ''}`}
+                  onDragOver={(event) => {
+                    if (!draggedTaskId) {
+                      return
+                    }
+
+                    event.preventDefault()
+                    event.dataTransfer.dropEffect = 'move'
+                    if (dragOverTaskId !== task.id) {
+                      setDragOverTaskId(task.id)
+                    }
+                  }}
+                  onDrop={(event) => {
+                    if (!draggedTaskId) {
+                      return
+                    }
+
+                    event.preventDefault()
+                    reorderTask(draggedTaskId, task.id)
+                    setDraggedTaskId(null)
+                    setDragOverTaskId(null)
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="task-drag-handle"
+                    title="拖曳調整順序"
+                    aria-label="拖曳調整順序"
+                    draggable
+                    onDragStart={(event) => {
+                      // Firefox needs setData for drag events to be emitted reliably.
+                      event.dataTransfer.setData('text/plain', task.id)
+                      event.dataTransfer.effectAllowed = 'move'
+                      setDraggedTaskId(task.id)
+                    }}
+                    onDragEnd={() => {
+                      setDraggedTaskId(null)
+                      setDragOverTaskId(null)
+                    }}
+                    onClick={(event) => event.preventDefault()}
+                  >
+                    ↕
+                  </button>
                   <input
                     type="checkbox"
                     checked={task.done}

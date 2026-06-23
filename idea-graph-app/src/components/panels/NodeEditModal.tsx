@@ -15,6 +15,8 @@ export function NodeEditModal() {
   const [taskConclusion, setTaskConclusion] = useState('')
   const [labelsInput, setLabelsInput] = useState('')
   const [isEditingMarkdown, setIsEditingMarkdown] = useState(false)
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -73,6 +75,25 @@ export function NodeEditModal() {
     updateNode(node.id, {
       tasks: node.data.tasks.filter((task) => task.id !== taskId),
     })
+  }
+
+  const reorderTask = (fromTaskId: string, toTaskId: string) => {
+    if (fromTaskId === toTaskId) {
+      return
+    }
+
+    const fromIndex = node.data.tasks.findIndex((task) => task.id === fromTaskId)
+    const toIndex = node.data.tasks.findIndex((task) => task.id === toTaskId)
+
+    if (fromIndex < 0 || toIndex < 0) {
+      return
+    }
+
+    const nextTasks = [...node.data.tasks]
+    const [movedTask] = nextTasks.splice(fromIndex, 1)
+    nextTasks.splice(toIndex, 0, movedTask)
+
+    updateNode(node.id, { tasks: nextTasks })
   }
 
   const commitLabels = () => {
@@ -145,7 +166,7 @@ export function NodeEditModal() {
               </select>
             </label>
             <label>
-              Labels (comma separated)
+              Labels (逗點分隔)
               <input
                 value={labelsInput}
                 disabled={isReadOnly}
@@ -165,14 +186,58 @@ export function NodeEditModal() {
                 disabled={isReadOnly}
                 onChange={(event) => updateNode(node.id, { isFocusPath: event.target.checked })}
               />
-              <span>Focus Path</span>
+              <span>Focus Path (顯示焦點路徑)</span>
             </label>
 
             <div className="task-editor">
               <p>Tasks</p>
               <div className="task-list-container">
                 {node.data.tasks.map((task) => (
-                  <div key={task.id} className="task-row">
+                  <div
+                    key={task.id}
+                    className={`task-row${dragOverTaskId === task.id ? ' task-row--drag-over' : ''}`}
+                    onDragOver={(event) => {
+                      if (!draggedTaskId) {
+                        return
+                      }
+
+                      event.preventDefault()
+                      event.dataTransfer.dropEffect = 'move'
+                      if (dragOverTaskId !== task.id) {
+                        setDragOverTaskId(task.id)
+                      }
+                    }}
+                    onDrop={(event) => {
+                      if (!draggedTaskId) {
+                        return
+                      }
+
+                      event.preventDefault()
+                      reorderTask(draggedTaskId, task.id)
+                      setDraggedTaskId(null)
+                      setDragOverTaskId(null)
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="task-drag-handle"
+                      title="拖曳調整順序"
+                      aria-label="拖曳調整順序"
+                      draggable
+                      onDragStart={(event) => {
+                        // Firefox needs setData for drag events to be emitted reliably.
+                        event.dataTransfer.setData('text/plain', task.id)
+                        event.dataTransfer.effectAllowed = 'move'
+                        setDraggedTaskId(task.id)
+                      }}
+                      onDragEnd={() => {
+                        setDraggedTaskId(null)
+                        setDragOverTaskId(null)
+                      }}
+                      onClick={(event) => event.preventDefault()}
+                    >
+                      ↕
+                    </button>
                     <input
                       type="checkbox"
                       checked={task.done}
@@ -236,8 +301,14 @@ export function NodeEditModal() {
                   disabled={isReadOnly}
                   onChange={(event) => setTaskConclusion(event.target.value)}
                 />
-                <button type="button" onClick={saveTask} disabled={isReadOnly}>
-                  Add Task
+                <button
+                  type="button"
+                  className="task-add-btn"
+                  title="新增 Task"
+                  onClick={saveTask}
+                  disabled={isReadOnly}
+                >
+                  +
                 </button>
               </div>
             </div>
